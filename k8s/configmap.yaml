@@ -1,0 +1,206 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neta-config
+  namespace: neta-ai
+data:
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  API_WORKERS: "4"
+  API_PORT: "8000"
+  CELERY_BROKER_POOL_SIZE: "20"
+  DATABASE_POOL_SIZE: "50"
+  DATABASE_MAX_OVERFLOW: "10"
+  DATABASE_POOL_TIMEOUT: "30"
+  DATABASE_ECHO: "false"
+  JWT_ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+  MFA_ENABLED: "true"
+  CORS_ORIGINS: |
+    [
+      "https://app.netaai.in",
+      "https://campaign.netaai.in",
+      "https://admin.netaai.in"
+    ]
+  ALLOWED_HOSTS: |
+    [
+      "api.netaai.in",
+      "staging-api.netaai.in",
+      "localhost:8000"
+    ]
+  TIMEZONE: "Asia/Kolkata"
+  NLP_MODEL_PATH: "/models/indic-bert-political"
+  NEWS_REFRESH_INTERVAL_HOURS: "2"
+  SENTIMENT_THRESHOLD_HIGH: "0.7"
+  SENTIMENT_THRESHOLD_LOW: "0.3"
+  DIVERGENCE_ALERT_THRESHOLD: "0.25"
+  BOOTH_HEALTH_ALERT_THRESHOLD: "20"
+  WHATSAPP_API_VERSION: "v18.0"
+  WHATSAPP_MESSAGE_TEMPLATE_LANGUAGE: "hi_IN"
+  CELERY_TASK_SOFT_LIMIT: "600"
+  CELERY_TASK_HARD_LIMIT: "900"
+  BACKUP_RETENTION_DAYS: "30"
+  LOG_AGGREGATION_ENDPOINT: "https://logs.netaai.in"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neta-logging-config
+  namespace: neta-ai
+data:
+  logging-config.yaml: |
+    version: 1
+    disable_existing_loggers: false
+    formatters:
+      json:
+        class: pythonjsonlogger.jsonlogger.JsonFormatter
+        format: "%(timestamp)s %(level)s %(name)s %(message)s"
+      standard:
+        format: "[%(asctime)s] %(levelname)s - %(name)s - %(message)s"
+    handlers:
+      console:
+        class: logging.StreamHandler
+        level: INFO
+        formatter: json
+        stream: ext://sys.stdout
+      file:
+        class: logging.handlers.RotatingFileHandler
+        level: DEBUG
+        formatter: json
+        filename: /app/logs/app.log
+        maxBytes: 10485760
+        backupCount: 10
+    loggers:
+      app:
+        level: DEBUG
+        handlers: [console, file]
+        propagate: false
+      app.database_design:
+        level: DEBUG
+      app.security_auth:
+        level: INFO
+      app.ground_operations:
+        level: DEBUG
+      app.news_intelligence:
+        level: DEBUG
+      app.booth_management:
+        level: DEBUG
+      app.prediction_sentiment:
+        level: DEBUG
+      app.opposition_intelligence:
+        level: DEBUG
+      app.whatsapp_integration:
+        level: DEBUG
+      uvicorn.access:
+        level: INFO
+        handlers: [console, file]
+        propagate: false
+      uvicorn.error:
+        level: ERROR
+        handlers: [console, file]
+        propagate: false
+      celery:
+        level: INFO
+        handlers: [console, file]
+        propagate: false
+      celery.task:
+        level: DEBUG
+      sqlalchemy.engine:
+        level: INFO
+      sqlalchemy.pool:
+        level: INFO
+    root:
+      level: INFO
+      handlers: [console, file]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: neta-ai
+data:
+  nginx.conf: |
+    upstream neta_api {
+      server neta-api:8000;
+    }
+
+    server {
+      listen 80;
+      server_name api.netaai.in;
+      client_max_body_size 10M;
+
+      # Redirect HTTP to HTTPS
+      return 301 https://$server_name$request_uri;
+    }
+
+    server {
+      listen 443 ssl http2;
+      server_name api.netaai.in;
+      client_max_body_size 10M;
+
+      # SSL Configuration
+      ssl_certificate /etc/nginx/ssl/server.crt;
+      ssl_certificate_key /etc/nginx/ssl/server.key;
+      ssl_protocols TLSv1.2 TLSv1.3;
+      ssl_ciphers HIGH:!aNULL:!MD5;
+      ssl_prefer_server_ciphers on;
+
+      # Security Headers
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-Frame-Options "DENY" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+      add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;" always;
+
+      # Gzip compression
+      gzip on;
+      gzip_types text/plain text/css application/json application/javascript;
+      gzip_min_length 1024;
+
+      # Rate limiting (100 req/min per IP for public endpoints)
+      limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/m;
+      limit_req zone=api_limit burst=20 nodelay;
+
+      # Logging
+      access_log /var/log/nginx/access.log;
+      error_log /var/log/nginx/error.log warn;
+
+      # API proxy
+      location / {
+        proxy_pass http://neta_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+
+        # Buffering
+        proxy_buffering on;
+        proxy_buffer_size 4k;
+        proxy_buffers 8 4k;
+        proxy_busy_buffers_size 8k;
+      }
+
+      # Health check endpoint (no rate limiting)
+      location /api/health {
+        limit_req off;
+        proxy_pass http://neta_api;
+      }
+
+      # Metrics endpoint (internal only)
+      location /metrics {
+        allow 10.0.0.0/8;
+        allow 172.16.0.0/12;
+        allow 192.168.0.0/16;
+        deny all;
+        proxy_pass http://neta_api;
+      }
+    }

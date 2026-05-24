@@ -1,0 +1,289 @@
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: neta-api-monitor
+  namespace: neta-ai
+  labels:
+    app: neta-api
+spec:
+  selector:
+    matchLabels:
+      app: neta-api
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+---
+apiVersion: v1
+kind: PrometheusRule
+metadata:
+  name: neta-alerts
+  namespace: neta-ai
+spec:
+  groups:
+  - name: neta.rules
+    interval: 30s
+    rules:
+    # API Availability
+    - alert: APIDown
+      expr: up{job="neta-api"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "NETA API is down"
+        description: "API instance {{ $labels.instance }} has been down for more than 2 minutes"
+
+    # High Error Rate
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{job="neta-api",status=~"5.."}[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+    # High Latency
+    - alert: HighLatency
+      expr: histogram_quantile(0.95, http_request_duration_seconds_bucket{job="neta-api"}) > 5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High API latency detected"
+        description: "95th percentile latency is {{ $value | humanizeDuration }} on {{ $labels.instance }}"
+
+    # Database Connection Pool Exhausted
+    - alert: DatabaseConnectionPoolExhausted
+      expr: postgres_stat_activity_count{datname="netaai_prod"} > 180
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Database connection pool near limit"
+        description: "{{ $value }} of 200 connections in use"
+
+    # Disk Space Critical
+    - alert: DiskSpaceCritical
+      expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) > 0.9
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Disk space critical"
+        description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.device }}"
+
+    # Memory Usage High
+    - alert: MemoryUsageHigh
+      expr: container_memory_usage_bytes{pod=~"neta-.*"} / container_spec_memory_limit_bytes > 0.85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage"
+        description: "Memory usage for {{ $labels.pod }} is {{ $value | humanizePercentage }}"
+
+    # CPU Usage High
+    - alert: CPUUsageHigh
+      expr: rate(container_cpu_usage_seconds_total{pod=~"neta-.*"}[5m]) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage"
+        description: "CPU usage for {{ $labels.pod }} is {{ $value | humanize }}%"
+
+    # Pod Restart Rate High
+    - alert: PodRestartingTooOften
+      expr: rate(kube_pod_container_status_restarts_total{pod=~"neta-.*"}[15m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod restarting too often"
+        description: "Pod {{ $labels.pod }} is restarting {{ $value | humanize }} times per minute"
+
+    # Redis Connection Lost
+    - alert: RedisDown
+      expr: up{job="redis"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Redis is down"
+        description: "Redis instance has been down for more than 1 minute"
+
+    # Celery Worker Down
+    - alert: CeleryWorkerDown
+      expr: up{job="celery-worker"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Celery worker is down"
+        description: "Celery worker has been unavailable for more than 2 minutes"
+
+    # Celery Queue Deep
+    - alert: CeleryQueueDeep
+      expr: celery_queue_length > 5000
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Celery queue is backing up"
+        description: "Queue depth is {{ $value }} tasks"
+
+    # Task Timeout Rate High
+    - alert: TaskTimeoutRateHigh
+      expr: rate(celery_task_timeout_total[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High task timeout rate"
+        description: "{{ $value | humanize }} tasks timing out per second"
+
+    # WhatsApp API Errors
+    - alert: WhatsAppAPIErrors
+      expr: rate(whatsapp_api_errors_total[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "WhatsApp API error rate high"
+        description: "Error rate is {{ $value | humanizePercentage }}"
+
+    # Alert Delivery Failed
+    - alert: AlertDeliveryFailed
+      expr: rate(alert_delivery_failed_total[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Alert delivery failing"
+        description: "{{ $value | humanize }} alerts failing per second"
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: neta-prometheus
+  namespace: neta-ai
+spec:
+  serviceAccountName: prometheus
+  serviceMonitorSelector: {}
+  ruleSelector: {}
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  retention: 30d
+  storageSpec:
+    volumeClaimTemplate:
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 50Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: neta-ai
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: neta-ai
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: neta-ai
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9090
+    targetPort: 9090
+    name: prometheus
+  selector:
+    prometheus: neta-prometheus
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-neta-api
+  namespace: neta-ai
+data:
+  neta-api-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "NETA AI API Metrics",
+        "panels": [
+          {
+            "title": "Request Rate",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"neta-api\"}[5m])"
+              }
+            ]
+          },
+          {
+            "title": "Error Rate",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"neta-api\",status=~\"5..\"}[5m])"
+              }
+            ]
+          },
+          {
+            "title": "Response Latency (p95)",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, http_request_duration_seconds_bucket{job=\"neta-api\"})"
+              }
+            ]
+          },
+          {
+            "title": "Active Connections",
+            "targets": [
+              {
+                "expr": "http_requests_in_progress{job=\"neta-api\"}"
+              }
+            ]
+          }
+        ]
+      }
+    }

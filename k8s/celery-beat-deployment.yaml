@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neta-celery-beat
+  namespace: neta-ai
+  labels:
+    app: neta-celery-beat
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: neta-celery-beat
+  template:
+    metadata:
+      labels:
+        app: neta-celery-beat
+        version: v1
+    spec:
+      serviceAccountName: neta-celery-beat
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: celery-beat
+        image: ghcr.io/your-org/neta-ai:latest
+        imagePullPolicy: Always
+        command:
+        - celery
+        - -A
+        - app.whatsapp_integration.celery_tasks
+        - beat
+        - --loglevel=info
+        - --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DEBUG
+          value: "false"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: neta-secrets
+              key: database-url
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            secretKeyRef:
+              name: neta-secrets
+              key: celery-broker-url
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            secretKeyRef:
+              name: neta-secrets
+              key: celery-result-backend
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: neta-secrets
+              key: redis-url
+        - name: LOG_LEVEL
+          value: "INFO"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+        livenessProbe:
+          exec:
+            command:
+            - celery
+            - -A
+            - app.whatsapp_integration.celery_tasks
+            - inspect
+            - ping
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
+        volumeMounts:
+        - name: beat-logs
+          mountPath: /app/logs
+        - name: beat-schedule
+          mountPath: /app/celerybeat-schedule
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+      terminationGracePeriodSeconds: 20
+      volumes:
+      - name: beat-logs
+        emptyDir: {}
+      - name: beat-schedule
+        persistentVolumeClaim:
+          claimName: neta-beat-schedule-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: neta-beat-schedule-pvc
+  namespace: neta-ai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: neta-celery-beat
+  namespace: neta-ai
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: neta-celery-beat
+  namespace: neta-ai
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
