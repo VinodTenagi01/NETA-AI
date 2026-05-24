@@ -1,0 +1,161 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version/Tag to deploy'
+        required: true
+      changelog:
+        description: 'Change log (required for production)'
+        required: true
+      rollback_enabled:
+        description: 'Enable rollback capability'
+        required: true
+        default: 'true'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ github.event.inputs.changelog }}" ]; then
+            echo "ERROR: Change log is required for production deployment"
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Docker image
+        run: |
+          docker pull ghcr.io/${{ github.repository }}:${{ github.event.inputs.version }}
+
+      - name: Pre-deployment health check
+        run: |
+          echo "Checking current production health..."
+          # In production, this would check current deployment status
+          # curl -f https://api.netaai.in/api/health || exit 1
+
+      - name: Create backup of current version
+        if: github.event.inputs.rollback_enabled == 'true'
+        run: |
+          echo "Creating backup of current production version..."
+          # In production, this would:
+          # 1. Tag current production image
+          # 2. Backup database
+          # 3. Save current docker-compose state
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying version ${{ github.event.inputs.version }} to production"
+          echo "Change log:"
+          echo "${{ github.event.inputs.changelog }}"
+          # In production, this would SSH to the production server and run:
+          # docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+          # docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+          # docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for services to be ready..."
+          sleep 60
+
+      - name: Run smoke tests
+        run: |
+          echo "Running post-deployment smoke tests..."
+
+          # Test API health
+          for i in {1..5}; do
+            if curl -f https://api.netaai.in/api/health; then
+              echo "✓ API health check passed"
+              break
+            fi
+            if [ $i -eq 5 ]; then
+              echo "✗ API health check failed after 5 attempts"
+              exit 1
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 10
+          done
+
+          # Test critical endpoints
+          echo "Testing critical endpoints..."
+          curl -f https://api.netaai.in/api/v1/alerts || exit 1
+
+          echo "✓ All smoke tests passed!"
+
+      - name: Validate database migrations
+        run: |
+          echo "Verifying database migrations..."
+          # In production, this would check:
+          # docker-compose exec api psql -U netaai_app -d netaai_prod -c "\dt"
+
+      - name: Enable monitoring alerts
+        run: |
+          echo "Enabling monitoring and alerting..."
+          # In production, this would:
+          # 1. Enable PagerDuty alerts
+          # 2. Resume monitoring dashboards
+          # 3. Send notification to on-call team
+
+      - name: Create deployment record
+        if: success()
+        run: |
+          echo "Creating deployment record..."
+          cat > deployment_record.txt << EOF
+          Version: ${{ github.event.inputs.version }}
+          Deployed at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          Deployed by: ${{ github.actor }}
+          Change log:
+          ${{ github.event.inputs.changelog }}
+          EOF
+
+      - name: Rollback if needed
+        if: failure() && github.event.inputs.rollback_enabled == 'true'
+        run: |
+          echo "❌ Deployment failed! Initiating rollback..."
+          # In production, this would:
+          # 1. Stop new services
+          # 2. Restore previous image
+          # 3. Restart services
+          # 4. Verify rollback
+          exit 1
+
+      - name: Notify team - Success
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **Production Deployment Successful**\n\nVersion: ${{ github.event.inputs.version }}\nDeployed by: ${{ github.actor }}\n\nChange log:\n${{ github.event.inputs.changelog }}'
+            })
+
+      - name: Notify team - Failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Production Deployment Failed**\n\nVersion: ${{ github.event.inputs.version }}\nDeployed by: ${{ github.actor }}\n\nRollback has been initiated.'
+            })

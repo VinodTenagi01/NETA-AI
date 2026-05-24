@@ -41,9 +41,12 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-netaai_app}:${POSTGRES_PASSWORD:-netaai_password}@postgres:5432/${POSTGRES_DB:-netaai_prod}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-["http://localhost:5173"]}
       DEBUG: ${DEBUG:-false}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
     ports:
       - "8000:8000"
     depends_on:
@@ -56,6 +59,56 @@ services:
       - ./data:/app/data:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: neta_celery_worker
+    command: celery -A app.whatsapp_integration.celery_tasks worker --loglevel=info --queues=alerts,notifications,monitoring,maintenance
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-netaai_app}:${POSTGRES_PASSWORD:-netaai_password}@postgres:5432/${POSTGRES_DB:-netaai_prod}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.whatsapp_integration.celery_tasks", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: neta_celery_beat
+    command: celery -A app.whatsapp_integration.celery_tasks beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-netaai_app}:${POSTGRES_PASSWORD:-netaai_password}@postgres:5432/${POSTGRES_DB:-netaai_prod}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.whatsapp_integration.celery_tasks", "inspect", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
