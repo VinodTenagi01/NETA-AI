@@ -13,6 +13,7 @@ from app.config import settings
 from app.geojson_mapping.router import router as geo_router
 from app.ground_operations.router import router as ground_router
 from app.security_auth.router import router as auth_router
+from app.news_intelligence.router import router as news_router
 
 
 @asynccontextmanager
@@ -49,6 +50,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(geo_router)
 app.include_router(ground_router)
+app.include_router(news_router)
 
 
 @app.get("/api/health", tags=["System"])
