@@ -69,7 +69,10 @@
       "Bash(xargs wc -l)",
       "Bash(xargs grep -l \"booth\")",
       "Bash(Select-String -Pattern \"session|whatsapp|integration\" -List)",
-      "Bash(xargs grep -l \"celery\\\\|asyncio\\\\|background\\\\|task\")"
+      "Bash(xargs grep -l \"celery\\\\|asyncio\\\\|background\\\\|task\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\NETA.AI\" -Recurse -Directory -Depth 2)",
+      "Bash(xargs cat)",
+      "Bash(xargs ls -lh)"
     ]
   }
 }
