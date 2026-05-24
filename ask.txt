@@ -1,0 +1,11 @@
+Vinod .\neta-sessions.ps -session 01-database-design
+After it starts hit esc. Claude will ask what it should do instead
+"Please check for me if this session 01-database-design is complete and is fully tested. Going forward add this to the regression tests. After passing all tests, please git commit , push and pull and update /memory and any other repo files . After all this I will exit and then start the next session"
+Vinod /exit
+Vinod .\neta-sessions.ps -session  02-security-auth
+Vinod : Once it completes paste the prompt
+" Have you done all tests and regression tested it. If already done , dont do so again. Otherwise do it for all future sessions by updating claude.md /memory and other repo files. ALso make sure that , in this and all future sessions you git commit , pusn and pull"
+Vinod : /exit
+.....
+
+

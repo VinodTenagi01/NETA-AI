@@ -1,0 +1,2745 @@
+﻿NETA AI â€” Political Campaign Intelligence Platform
+Product Requirements Document
+Field
+Value
+Document Title
+NETA AI â€” Product Requirements Document
+Version
+2.0 â€” Production Release Candidate
+Classification
+STRICTLY CONFIDENTIAL â€” WAR ROOM RESTRICTED
+Constituency
+Serilingampally Assembly Constituency (AC-52), Telangana, India
+Prepared By
+NETA AI Product & Engineering Team
+Date
+May 2026
+Status
+Active â€” Under Continuous Revision
+"In modern Indian elections, the constituency that wins the information war wins the constituency. NETA AI is that information war â€” industrialized, automated, and always on."
+Table of Contents
+Executive Summary
+Problem Statement
+Vision & Strategic Intent
+Scope & Boundaries
+Users & Roles
+AI Agent Architecture
+System Architecture
+Technology Stack
+Functional Modules
+Data Pipelines
+Constituency Intelligence
+News Intelligence Engine
+Ground Operations
+Booth Management System
+Prediction & Sentiment Systems
+Opposition Intelligence
+Security Architecture
+Deployment Architecture
+DevOps & CI/CD
+Database Design
+Redis & Celery Architecture
+GeoJSON Mapping System
+Mobile Operations
+WhatsApp Integration
+Performance Optimization
+Monitoring & Logging
+Scalability Planning
+Risk Analysis
+Ethical Guardrails
+Future Roadmap
+Production Readiness
+Launch Checklist
+Conclusion
+1. Executive Summary
+NETA AI is a 
+real-time political campaign intelligence and constituency operations platform
+ built specifically for ground-level election management in Indian assembly constituencies. It is not a planning tool, a content generator, or a polling dashboard. It is an 
+operational war room
+ â€” a live, AI-augmented command center that ingests ground data, news feeds, demographic signals, and booth-level intelligence to give campaign leadership a unified, real-time view of an election in motion.
+The platform is deployed initially for 
+Serilingampally Assembly Constituency (AC-52)
+ in Telangana â€” a large, heterogeneous urban constituency of approximately 300,000+ registered voters across 300+ polling booths, spanning the technology corridors of Kondapur, Madhapur, Gachibowli, Raidurg, and HITEC City. The constituency's voter profile is uniquely complex: IT-sector professionals, migrant workers, real estate-era residents, and legacy communities â€” each requiring differentiated campaign engagement.
+What NETA AI Delivers
+Capability
+Operational Value
+Live Command Centre
+Single-pane-of-glass dashboard: win probability, booth health, escalation queue, live KPIs
+AI Candidate Brief
+Daily 6:00 AM intelligence brief for the candidate â€” auto-generated from overnight ground and news data
+Ground Pulse
+Real-time field worker management, structured mobile reporting, GPS-enabled booth check-ins
+News Intelligence
+Automated RSS ingestion with NLP sentiment scoring, narrative tracking, and political impact ranking
+Constituency Intelligence
+Census and ECI-integrated GeoJSON booth maps with demographic overlays and zone analytics
+Opposition Intelligence
+Rival monitoring, comparative sentiment analysis, opposition narrative detection
+Booth Management
+Risk-scored, volunteer-mapped, contact-rate-tracked management of every polling booth
+Escalation Engine
+SLA-bound alert routing from field to command to resolution â€” under 30 minutes for CRITICAL
+Security Layer
+JWT + httpOnly cookies, MFA, RBAC, Redis blacklist, HTTPS hardening, upload validation
+Strategic Positioning
+NETA AI is not an analytics product. It is an 
+election operations infrastructure
+. The distinction is critical: analytics products inform decisions after the fact; operations infrastructure changes outcomes while there is still time. Every feature, every alert, every AI output in NETA AI is designed to create a response window â€” the difference between knowing something and knowing it in time to act.
+2. Problem Statement
+Indian political campaigns â€” even well-funded, professional ones â€” are structurally broken at the intelligence layer. The following failure modes are endemic and have been directly observed across Telangana constituency campaigns:
+2.1 No Centralized Campaign Intelligence
+Campaign data lives across dozens of disconnected surfaces: WhatsApp group messages, shared Excel sheets, physical attendance registers, individual field worker notebooks, party office whiteboards, and verbal briefings. There is no single source of truth. When the campaign manager asks "what is happening right now in Booth 147?", the honest answer, in most campaigns, is: 
+"We don't know yet."
+2.2 Intelligence Latency Is Measured in Hours, Not Minutes
+A voter incident at a booth at 10:00 AM may reach the campaign manager's awareness at 2:00 PM â€” after passing through a chain of WhatsApp forwards, phone calls, and informal relay. By then, the response window has closed. Vote conversion opportunities evaporate. Opposition narratives take root. NETA AI's target is to reduce this latency to 
+under 60 seconds
+ from field event to dashboard visibility.
+2.3 Booth Management Is Intuitive, Not Scientific
+Booth assignment, volunteer deployment, and contact rate tracking are managed through experience and gut feel. There is no systematic method to identify which booths are at risk, which are being neglected, or which have coverage gaps. Critical booths often receive attention only when it is too late to recover them.
+2.4 News Monitoring Is Manual and Inconsistent
+Campaign communications teams manually browse news portals, monitor WhatsApp forwards, and watch TV channels for political coverage. This is slow (hours behind the news cycle), inconsistent (depends on individual attention), and analytically thin (no sentiment scoring, no narrative tracking, no impact measurement). Damaging stories can circulate for hours before any campaign response is initiated.
+2.5 Escalation Is Informal and Unreliable
+When a critical event occurs â€” a booth dispute, a viral negative video, opposition vote-buying activity, a ground worker breakdown â€” there is no structured escalation protocol. Messages get lost in group chats. Accountability is unclear. SLA tracking is nonexistent. The result is that genuine emergencies are often managed reactively, at the worst possible moment.
+2.6 Opposition Intelligence Is Reactive and Anecdotal
+Most campaigns have a rough sense of what the opposition is doing based on public events and informal sources. There is no systematic tracking of opposition messaging, rally locations, media narratives, or ground deployment patterns. Campaigns discover they are losing ground narrative only when it is reflected in voter feedback â€” days or weeks too late.
+2.7 Constituency Data Is Static and Unqueriable
+Demographic breakdowns, caste profiles, historical vote share data, and booth-level population data exist in static PDFs, government documents, or party archives. They cannot be queried in real time, visualized spatially, or connected to live campaign activity. The constituency is effectively opaque to analytical decision-making.
+3. Vision & Strategic Intent
+"To make NETA AI the central nervous system of every serious Indian constituency campaign â€” delivering real-time ground intelligence, AI-powered analysis, and operational command that wins elections."
+3.1 Core Design Principles
+Principle
+Operational Expression
+Speed over completeness
+A 60-second imperfect data point beats a 4-hour perfect report. System is designed for velocity.
+Actionability over information
+Every output â€” alert, brief, score â€” must suggest a response, not just a data point.
+Ground truth first
+Field reports and booth data are primary signals. News and social media are secondary validation.
+Security without friction
+Security must be enterprise-grade without creating UI friction that causes field workers to bypass the system.
+Composable by design
+All modules are independently functional. Modules compose into a unified intelligence picture.
+3.2 Success Definition
+NETA AI succeeds when:
+The campaign manager can answer 
+"What is happening right now in any booth?"
+ within 90 seconds, from any device.
+The candidate receives an accurate, AI-generated morning brief that requires no supplementary briefing from the team.
+A CRITICAL field escalation is acknowledged and actioned within 30 minutes, every time.
+News sentiment alerts are generated within 15 minutes of a high-impact article's publication.
+The win probability model is directionally accurate and updated at least every 15 minutes.
+4. Scope & Boundaries
+4.1 In Scope â€” v1.0
+Domain
+Coverage
+Command Operations
+Live KPI dashboards, win probability, alert system, escalation workflow
+Candidate Intelligence
+AI-generated daily briefs, risk indicators, opportunity zone identification
+Ground Management
+Worker tracking, field report submission, attendance, mood analysis
+News Intelligence
+RSS ingestion, NLP sentiment analysis, political impact scoring, narrative tracking
+Constituency Analytics
+GeoJSON mapping, demographic overlays, booth heatmaps, zone analysis
+Booth Operations
+Booth data profiles, risk scoring, contact rate tracking, volunteer mapping
+Opposition Monitoring
+Rival news tracking, comparative sentiment, opposition narrative detection
+Voter Roll Management
+CSV ingestion, validation, deduplication, booth-level mapping
+Security & Auth
+JWT, RBAC, MFA, session management, audit logging
+Infrastructure
+Docker containerization, Nginx, Redis, Celery, PostgreSQL
+Real-time Updates
+SSE-based push for all live dashboard components
+Mobile Access
+Responsive web for field workers; PWA installable on Android
+WhatsApp Alerts
+Operational alerts and escalation notifications via WhatsApp Business API
+4.2 Explicitly Out of Scope â€” v1.0
+Domain
+Reason
+Native iOS/Android app
+Planned for Phase 2; React-based PWA covers field worker needs in v1.0
+Paid digital ad management
+Execution by human team; NETA AI provides targeting recommendations only
+IVR / voice call ingestion
+Phase 3 roadmap item
+Disinformation or deepfake generation
+Prohibited by ethical guardrails â€” non-negotiable
+Direct social media posting
+Content drafted by AI; published with human approval only
+Financial compliance tracking
+ECI expense reporting is a separate compliance workstream
+5. Users & Roles
+5.1 Human User Roles
+Role
+Scope
+Primary Platform Surface
+Super Admin
+Full system access including infrastructure, user management, and all data
+Admin Dashboard, all modules
+Campaign Manager
+Full operational access; manages escalations, configures alerts, oversees all modules
+Command Centre, all operational modules
+Ground Commander
+Zone-scoped access; manages field workers and booth data within assigned zone
+Ground Pulse, Booth Management (zone-filtered)
+Data Analyst
+Read-only access across all analytical modules; can export data and configure feeds
+Constituency Intelligence, News Intelligence, Opposition Intel
+Field Worker
+Mobile-optimized access; submits reports, logs booth visits, receives tasks
+Ground Pulse mobile form, Booth check-in
+Candidate
+Simplified read-only view; daily brief, win probability, top alerts
+Candidate Brief, Command Centre (condensed)
+5.2 Role Permission Matrix
+Module
+Super Admin
+Campaign Mgr
+Ground Cmdr
+Data Analyst
+Field Worker
+Candidate
+Command Centre
+âœ… 
+Full
+âœ… 
+Full
+âœ… 
+Zone-filtered
+âœ… 
+Read
+âŒ
+âœ… 
+Condensed
+Candidate Brief
+âœ…
+âœ…
+âŒ
+âœ… 
+Read
+âŒ
+âœ…
+Ground Pulse
+âœ…
+âœ…
+âœ… 
+Zone
+âœ… 
+Read
+âœ… 
+Submit
+âŒ
+News Intelligence
+âœ…
+âœ…
+âœ… 
+Read
+âœ… 
+Full
+âŒ
+âŒ
+Constituency Intel
+âœ…
+âœ…
+âœ… 
+Zone
+âœ… 
+Full
+âŒ
+âŒ
+Opposition Intel
+âœ…
+âœ…
+âŒ
+âœ… 
+Full
+âŒ
+âŒ
+Booth Management
+âœ…
+âœ…
+âœ… 
+Zone
+âœ… 
+Read
+âŒ
+âŒ
+Voter Roll
+âœ…
+âœ…
+âŒ
+âœ… 
+Read
+âŒ
+âŒ
+Admin Dashboard
+âœ… 
+Full
+âŒ
+âŒ
+âŒ
+âŒ
+âŒ
+User Management
+âœ…
+âŒ
+âŒ
+âŒ
+âŒ
+âŒ
+Alert Configuration
+âœ…
+âœ…
+âŒ
+âŒ
+âŒ
+âŒ
+5.3 Role Enforcement Architecture
+All role enforcement occurs at two layers:
+API layer
+: FastAPI dependency injection checks JWT claims for role and zone_id on every protected endpoint. Zone-scoped roles receive filtered querysets â€” not full-table access with a frontend filter.
+Frontend layer
+: Route-level guards in React prevent unauthorized navigation. This is a UX protection only â€” API enforcement is the security boundary.
+6. AI Agent Architecture
+NETA AI's intelligence layer operates as a coordinated set of AI processing pipelines â€” not a single monolithic model. Each pipeline is purpose-built for a specific intelligence domain and operates on its own data inputs, scoring logic, and output format.
+6.1 Intelligence Pipeline Architecture
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                       NETA AI INTELLIGENCE CORE                      â”‚
+â”‚              Orchestration Layer â€” FastAPI + Celery Beat             â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+        â”‚          â”‚          â”‚          â”‚          â”‚
+   GROUND       NEWS       BOOTH      OPPO       BRIEF
+   PULSE        INTEL      SCORE      INTEL      ENGINE
+  PIPELINE    PIPELINE   PIPELINE   PIPELINE   PIPELINE
+        â”‚          â”‚          â”‚          â”‚          â”‚
+        â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                             â”‚
+                    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”
+                    â”‚  COMMAND CENTRE â”‚
+                    â”‚  AGGREGATION    â”‚
+                    â”‚  LAYER          â”‚
+                    â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                             â”‚
+                   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”
+                   â”‚  SSE PUSH ENGINE â”‚
+                   â”‚  (Redis PubSub)  â”‚
+                   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+6.2 Pipeline Specifications
+Ground Pulse Pipeline
+Trigger
+: On every field report submission (event-driven)
+Input
+: Field report object (booth_id, category, severity, description, sentiment_text)
+Processing
+: Severity check â†’ if â‰¥4, trigger escalation record creation; NLP sentiment extract from description text; update booth health score cache in Redis
+Output
+: Booth health score update, escalation record (if triggered), SSE push to dashboard
+Latency target
+: <10 seconds from submission to dashboard visibility
+News Intelligence Pipeline
+Trigger
+: Celery Beat cron every 5 minutes
+Input
+: RSS feed URLs (20+ configured sources)
+Processing
+: Fetch new articles â†’ extract title/body/date â†’ NLP sentiment scoring â†’ political tone classification â†’ entity tagging â†’ impact score calculation â†’ narrative cluster assignment
+Output
+: news_articles table insertion, high-impact alert generation (if score â‰¥7), narrative cluster update
+Latency target
+: <15 minutes from article publication to system awareness
+Booth Risk Scoring Pipeline
+Trigger
+: Celery Beat cron at 00:01 IST + on-demand API trigger
+Input
+: contact_rate, sentiment_scores (last 48h), escalation_count, last_report_age, volunteer_coverage
+Processing
+: Weighted composite formula (defined in Section 14)
+Output
+: booth.risk_score update, CRITICAL alert for booths crossing threshold
+Latency target
+: Nightly batch within 30 minutes; on-demand within 60 seconds
+Opposition Intelligence Pipeline
+Trigger
+: Celery Beat cron every 10 minutes
+Input
+: Opposition-tagged RSS filter, field reports with category=OPPOSITION_ACTIVITY
+Processing
+: Entity extraction for opposition names â†’ sentiment comparison â†’ narrative divergence analysis
+Output
+: opposition_intelligence_scores table, Command Centre comparative widget update
+Morning Brief Engine
+Trigger
+: Celery Beat cron at 05:45 IST daily
+Input
+: Previous 24h field reports, news articles (sentiment-scored), booth risk scores, active escalations, win probability delta
+Processing
+: Structured intelligence synthesis â†’ template rendering â†’ WhatsApp delivery trigger
+Output
+: intelligence_briefs table record, WhatsApp message to Campaign Manager at 06:00 IST
+6.3 AI/NLP Engine Specification
+Component
+Implementation
+Purpose
+Tokenizer
+HuggingFace tokenizer (IndicBERT / MuRIL)
+Telugu + English pre-processing
+Sentiment Classifier
+Fine-tuned multilingual BERT
+Polarity scoring (-1.0 to +1.0)
+Political Tone Classifier
+Custom 3-class head on BERT
+Pro-incumbent / Neutral / Anti-incumbent
+Entity Extractor
+spaCy with custom NER
+Candidate names, locations, parties, issues
+Narrative Clusterer
+TF-IDF + k-means (Scikit-learn)
+Group articles by recurring theme
+Severity Heuristic
+Rule-based + ML hybrid
+Issue severity ranking (1â€“10)
+Brief Generator
+Template-based + LLM summarization
+Structured briefing generation
+7. System Architecture
+7.1 High-Level Architecture
+                        
+INTERNET
+                           â”‚
+                    â”Œâ”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”
+                    â”‚    NGINX    â”‚ â† SSL termination, rate limiting,
+                    â”‚  (Rev Proxy)â”‚   static file serving, CORS
+                    â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜
+                           â”‚
+              â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+              â”‚            â”‚            â”‚
+       â”Œâ”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”  Static      â”Œâ”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+       â”‚  FastAPI    â”‚  Assets      â”‚  SSE Stream  â”‚
+       â”‚  Backend    â”‚  (Vite)      â”‚  Endpoint    â”‚
+       â”‚  (Python)   â”‚              â”‚  /api/stream â”‚
+       â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜              â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜
+              â”‚                            â”‚
+     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                 â”‚
+     â”‚        â”‚          â”‚                 â”‚
+  â”Œâ”€â”€â–¼â”€â”€â”  â”Œâ”€â”€â–¼â”€â”€â”  â”Œâ”€â”€â”€â–¼â”€â”€â”€â”€â”      â”Œâ”€â”€â”€â”€â–¼â”€â”€â”€â”€â”
+  â”‚ PG  â”‚  â”‚Redisâ”‚  â”‚Celery  â”‚      â”‚  Redis  â”‚
+  â”‚ DB  â”‚  â”‚Cacheâ”‚  â”‚Workers â”‚      â”‚ PubSub  â”‚
+  â””â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”¬â”€â”€â”€â”€â”˜      â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+              â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+              â”‚          â”‚          â”‚
+         RSS Feeds   WhatsApp    Scoring
+         Ingestion    Alerts      Tasks
+7.2 Request Flow â€” Field Report Submission
+Field Worker (Mobile Browser)
+    â”‚â”€â”€ POST /api/reports/ (with JWT cookie)
+    â”‚
+Nginx â”€â”€ rate-limit check â”€â”€> FastAPI
+    â”‚
+FastAPI:
+    â”œâ”€â”€ Validate JWT (Redis blacklist check)
+    â”œâ”€â”€ Validate request schema (Pydantic)
+    â”œâ”€â”€ Write to field_reports table (PostgreSQL)
+    â”œâ”€â”€ Publish event to Redis PubSub channel
+    â”œâ”€â”€ Enqueue Celery task: process_field_report(report_id)
+    â””â”€â”€ Return 201 Created
+    â”‚
+Celery Worker:
+    â”œâ”€â”€ Extract sentiment from description text
+    â”œâ”€â”€ Update booth health score (Redis cache)
+    â”œâ”€â”€ If severity â‰¥ 4: create escalation record
+    â”œâ”€â”€ If severity = 5: trigger WhatsApp alert
+    â””â”€â”€ Publish updated KPIs to Redis PubSub
+    â”‚
+SSE Engine:
+    â”œâ”€â”€ Subscribe to Redis PubSub
+    â”œâ”€â”€ Push KPI update to all connected dashboard clients
+    â””â”€â”€ Field report appears on Command Centre within 10 seconds
+7.3 Data Flow â€” News Intelligence
+Celery Beat (every 5 min)
+    â”‚â”€â”€ Trigger: fetch_rss_feeds task
+    â”‚
+Celery Worker:
+    â”œâ”€â”€ Fetch articles from 20+ RSS URLs
+    â”œâ”€â”€ Deduplicate against news_articles.url (UNIQUE constraint)
+    â”œâ”€â”€ For each new article:
+    â”‚   â”œâ”€â”€ NLP: sentiment scoring
+    â”‚   â”œâ”€â”€ NLP: political tone classification
+    â”‚   â”œâ”€â”€ NLP: entity extraction
+    â”‚   â”œâ”€â”€ Compute impact_score
+    â”‚   â”œâ”€â”€ Assign narrative_cluster
+    â”‚   â””â”€â”€ Write to news_articles table
+    â”œâ”€â”€ If any article impact_score â‰¥ 7.0:
+    â”‚   â”œâ”€â”€ Create alerts record (severity=WARNING or CRITICAL)
+    â”‚   â””â”€â”€ Publish to Redis PubSub (dashboard alert)
+    â””â”€â”€ Update news_sentiment_cache in Redis (TTL: 10 min)
+8. Technology Stack
+8.1 Full Stack Reference
+Layer
+Technology
+Version
+Rationale
+Frontend Framework
+React
+18.x
+Component model suits modular dashboard architecture
+Build Tool
+Vite
+5.x
+Sub-second HMR, superior chunk splitting over CRA/Webpack
+Styling
+Tailwind CSS
+3.x
+Utility-first; fast iteration without CSS sprawl
+State: Server
+React Query (TanStack)
+5.x
+Automatic cache invalidation, background refetch, stale-while-revalidate
+State: Global
+Zustand
+4.x
+Minimal boilerplate; predictable for SSE-driven state updates
+Map Rendering
+Leaflet.js
+1.9.x
+Lightweight, mobile-compatible, GeoJSON-native
+Charts
+Recharts
+2.x
+React-native, composable, SSR-compatible
+Backend Framework
+FastAPI
+0.111.x
+Async-native Python; Pydantic v2 integration; OpenAPI generation
+Python Runtime
+Python
+3.11
+Latest stable with performance improvements
+ORM
+SQLAlchemy
+2.0 (async)
+Async-native ORM; compatible with asyncpg
+DB Driver
+asyncpg
+0.29.x
+High-performance async PostgreSQL driver
+Primary Database
+PostgreSQL
+15 + PostGIS
+Relational integrity; PostGIS for geospatial booth queries
+Cache & Broker
+Redis
+7.x
+In-memory KPI cache; Celery broker; JWT blacklist; PubSub for SSE
+Task Queue
+Celery
+5.x
+Distributed async task execution for all background pipelines
+Task Scheduler
+Celery Beat
+5.x
+Cron-based scheduling for periodic intelligence pipelines
+NLP â€” Core
+HuggingFace Transformers
+4.x
+Fine-tuned multilingual BERT models for Telugu+English
+NLP â€” Entity
+spaCy
+3.x
+Named entity recognition for political entity extraction
+Reverse Proxy
+Nginx
+1.25
+SSL termination, rate limiting, security headers, static serving
+Containerization
+Docker
+24.x
+All services containerized for environment parity
+Orchestration
+Docker Compose
+2.x
+Single-file service orchestration for production and local dev
+SSL
+Let's Encrypt + Certbot
+Latest
+Auto-renewing SSL certificates
+PWA
+Vite PWA Plugin
+0.19.x
+Service worker, offline caching, home screen installable
+8.2 External Integrations
+Service
+Purpose
+API Type
+WhatsApp Business API
+Operational alerts, escalation notifications, morning brief delivery
+REST (Meta Cloud API)
+ECI Data Portal
+Booth data, voter roll reference data, constituency boundaries
+Manual download (CSV, shapefile)
+Census of India API / Files
+Demographic data at ward and district level
+Static CSV/JSON (2011 base)
+OpenStreetMap / Overpass
+Base map tiles, road network, locality boundaries
+REST + vector tiles
+RSS Feed Sources
+News ingestion (20+ sources)
+RSS/Atom XML
+9. Functional Modules
+NETA AI is organized into nine user-facing modules and one administrative module. Each module is a self-contained frontend route backed by dedicated API endpoints and database tables. Modules share a common authentication layer, Redis cache layer, and SSE subscription channel.
+Module Dependency Map
+Admin Dashboard
+    â””â”€â”€ User Management
+    â””â”€â”€ Feed Configuration
+    â””â”€â”€ System Health
+Command Centre (aggregates all modules)
+    â”œâ”€â”€ Ground Pulse
+    â”‚   â””â”€â”€ Field Reports
+    â”‚   â””â”€â”€ Worker Tracking
+    â”œâ”€â”€ News Intelligence
+    â”‚   â””â”€â”€ RSS Pipeline
+    â”‚   â””â”€â”€ Sentiment Engine
+    â”œâ”€â”€ Booth Management
+    â”‚   â””â”€â”€ Booth Risk Scoring
+    â”‚   â””â”€â”€ Voter Roll
+    â”œâ”€â”€ Constituency Intelligence
+    â”‚   â””â”€â”€ GeoJSON System
+    â”‚   â””â”€â”€ Demographics
+    â””â”€â”€ Opposition Intelligence
+Candidate Brief (synthesizes all modules)
+Detailed functional specifications for each module are provided in Sections 11â€“16.
+10. Data Pipelines
+10.1 Pipeline Inventory
+Pipeline
+Trigger
+Frequency
+Output
+RSS Ingestion
+Celery Beat
+Every 5 minutes
+news_articles records
+News Sentiment Scoring
+Chained after RSS ingestion
+Per article batch
+sentiment_polarity, impact_score
+Booth Risk Scoring
+Celery Beat
+00:01 IST daily + on-demand
+booth.risk_score
+Win Probability Computation
+Celery Beat
+Every 15 minutes
+intelligence_scores record
+Morning Brief Generation
+Celery Beat
+05:45 IST daily
+intelligence_briefs record + WhatsApp
+Voter Roll Processing
+Manual trigger (post-upload)
+On-demand
+voters table records
+Constituency KPI Aggregation
+Celery Beat
+Every 60 seconds
+Redis KPI cache
+Opposition Intelligence Scoring
+Celery Beat
+Every 10 minutes
+opposition_intelligence table
+Field Report Processing
+Event-driven (on report submit)
+Real-time
+booth health cache update, escalation
+Escalation SLA Monitor
+Celery Beat
+Every 5 minutes
+SLA breach alerts, WhatsApp reminders
+10.2 Pipeline Failure Handling
+All pipelines implement the following failure resilience pattern:
+# Celery task retry configuration (applied to all pipelines)
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,  # 60 seconds between retries
+    autoretry_for=(RequestException, DatabaseError),
+    acks_late=True,  # Only acknowledge after successful completion
+)
+def pipeline_task(self, *args, **kwargs):
+    try:
+        # Pipeline logic
+        pass
+    except Exception as exc:
+        # Log to structured logger
+        logger.error("pipeline_failed", task=self.name, exc=str(exc))
+        # Alert admin if max retries exhausted
+        if self.request.retries == self.max_retries:
+            trigger_admin_alert(f"Pipeline {self.name} exhausted retries")
+        raise self.retry(exc=exc)
+10.3 Data Freshness SLAs
+Data Type
+Maximum Acceptable Staleness
+Alert Threshold
+Field Reports â†’ Dashboard
+60 seconds
+120 seconds
+News Articles
+15 minutes
+30 minutes
+Booth Risk Scores
+24 hours (nightly batch)
+48 hours
+Win Probability
+15 minutes
+30 minutes
+KPI Aggregates (Redis cache)
+60 seconds
+3 minutes
+Morning Brief
+Delivered by 06:00 IST
+Delivery after 07:00 IST
+11. Constituency Intelligence
+11.1 Purpose & Scope
+The Constituency Intelligence module is the geo-demographic backbone of NETA AI. It provides spatial, statistical, and historical data visualization for Serilingampally AC-52, integrated with live campaign data to enable targeted, evidence-based deployment decisions.
+11.2 Data Sources & Integration
+Census Data Layer
+Field
+Source
+Granularity
+Update Cadence
+Total population
+Census 2011 + 2024 projection
+Ward level
+Annual refresh
+Voter population
+ECI voter roll summary
+Booth level
+Per election cycle
+Gender split
+Census 2011
+Ward level
+Annual
+Literacy rate
+Census 2011
+District/ward
+Annual
+SC/ST proportion
+Census 2011
+Ward level
+Annual
+OBC estimate
+Survey data + Census
+Ward level
+Campaign-cycle
+Occupation breakdown
+Census 2011
+Ward level
+Annual
+Household income proxy
+NSS survey data
+District level
+Annual
+All census data is stored in the 
+constituency_demographics
+ table with a 
+ward_id
+ foreign key, enabling JOIN with booth-level data through the 
+booth_ward_mapping
+ table.
+ECI Booth Data Layer
+Field
+Source
+Storage
+Booth number
+ECI official booth list
+booths.booth_number
+Booth name / location
+ECI official booth list
+booths.name
+, PostGIS POINT
+Total registered voters
+ECI voter roll summary
+booths.total_voters
+Booth catchment boundary
+ECI shapefile (converted to GeoJSON)
+booth_boundaries.geojson
+11.3 Constituency Zone Structure
+Serilingampally AC-52 is divided into the following campaign management zones for operational purposes:
+Zone ID
+Zone Name
+Key Areas
+Booth Count (approx.)
+Voter Count (approx.)
+Z-01
+Kondapur Zone
+Kondapur, Ayyappa Society, Laxmi Cyber City
+55
+52,000
+Z-02
+Madhapur Zone
+Madhapur, Jubilee Hills Road, Raidurg
+48
+44,000
+Z-03
+Gachibowli Zone
+Gachibowli, Financial District, ISB Road
+42
+39,000
+Z-04
+HITEC City Zone
+HITEC City, Whitefields, Kothaguda
+38
+36,000
+Z-05
+Hafeezpet Zone
+Hafeezpet, Miyapur Link Road, RC Puram
+52
+49,000
+Z-06
+Chandanagar Zone
+Chandanagar, Lingampally, Chanda Nagar OFB
+45
+43,000
+Z-07
+Nallagandla Zone
+Nallagandla, Tellapur, Kollur
+35
+33,000
+Total
+~315 booths
+~296,000
+11.4 Constituency Intelligence Views
+Demographic Overlay Map
+Interactive Leaflet.js choropleth with selectable overlay:
+Voter density (voters per sq km)
+SC/ST concentration (% of booth catchment)
+Youth voter proportion (18â€“35 age estimate)
+Literacy rate
+Gender ratio (female voters %)
+Each overlay uses a 5-step color scale normalized to constituency min/max values. Map layer toggles are accessible in the sidebar panel.
+Historical Vote Share Layer
+For each booth, display historical vote share data (where available from prior election results):
+Candidate party vote share
+Main opposition vote share
+Winning margin
+Voter turnout %
+Booths with prior margin <5% are flagged as SWING BOOTHS with a distinct map marker.
+Zone Comparison Dashboard
+Tabular comparison of all zones across:
+Metric
+Z-01
+Z-02
+Z-03
+Z-04
+Z-05
+Z-06
+Z-07
+Contact Rate %
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+Avg Booth Health
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+Active Workers
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+Open Escalations
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+News Sentiment
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+â€”
+(Values populate live from database during operation.)
+12. News Intelligence Engine
+12.1 RSS Feed Catalogue
+The following sources are configured in the initial deployment. The feed catalogue is manageable via the Admin Dashboard without code changes.
+Source
+Language
+Tier
+Topics Monitored
+The Hindu â€” Telangana
+English
+1
+Politics, governance, development
+NDTV â€” Telangana
+English
+1
+Breaking news, political developments
+Deccan Chronicle â€” Hyderabad
+English
+2
+Local politics, constituency coverage
+The News Minute
+English
+2
+Telangana politics, investigative
+Sakshi â€” Political
+Telugu
+1
+YSRCP/BRS/Congress coverage
+Eenadu â€” Political
+Telugu
+1
+Mainstream Telugu political news
+Namaste Telangana
+Telugu
+2
+BRS-aligned political coverage
+V6 News Telugu
+Telugu
+2
+Telangana news and politics
+Hans India
+English
+2
+Hyderabad and Telangana coverage
+Siasat Daily
+Urdu/English
+2
+Minority community perspectives
+Telangana Today
+English
+2
+Official Telangana state coverage
++ 9 additional sources
+Mixed
+3
+Hyperlocal, community, ward blogs
+12.2 NLP Processing Pipeline
+Raw RSS Article
+    â”‚
+    â–¼
+[Pre-processing]
+    â”œâ”€â”€ Language detection (Telugu / English)
+    â”œâ”€â”€ HTML tag stripping
+    â”œâ”€â”€ Normalization (Unicode, encoding)
+    â””â”€â”€ Sentence tokenization
+    â”‚
+    â–¼
+[Sentiment Analysis]
+    â”œâ”€â”€ IndicBERT / MuRIL tokenization
+    â”œâ”€â”€ Polarity score: -1.0 (strongly negative) â†’ +1.0 (strongly positive)
+    â”œâ”€â”€ Confidence score (0.0 â†’ 1.0)
+    â””â”€â”€ Political tone: PRO_INCUMBENT | NEUTRAL | ANTI_INCUMBENT
+    â”‚
+    â–¼
+[Entity Extraction]
+    â”œâ”€â”€ Candidate name(s) detection
+    â”œâ”€â”€ Constituency name detection
+    â”œâ”€â”€ Party name detection
+    â”œâ”€â”€ Issue tag extraction (INFRASTRUCTURE|DEVELOPMENT|SECURITY|etc.)
+    â””â”€â”€ Location tagging (ward, zone, area names)
+    â”‚
+    â–¼
+[Impact Scoring]
+    â”œâ”€â”€ Base = |sentiment_polarity| Ã— political_relevance_score
+    â”œâ”€â”€ Source multiplier: Tier 1 = 1.0, Tier 2 = 0.7, Tier 3 = 0.4
+    â”œâ”€â”€ Recency decay: e^(-0.1 Ã— hours_since_publication)
+    â””â”€â”€ Impact Score = Base Ã— Source Multiplier Ã— Recency Decay Ã— 10
+    â”‚
+    â–¼
+[Narrative Clustering]
+    â”œâ”€â”€ TF-IDF vectorization of article body
+    â”œâ”€â”€ Cosine similarity against existing cluster centroids
+    â”œâ”€â”€ Assign to nearest cluster (threshold: similarity > 0.65)
+    â””â”€â”€ If no match: create new cluster; alert analyst
+    â”‚
+    â–¼
+[Output]
+    â”œâ”€â”€ Write to news_articles table
+    â”œâ”€â”€ If impact_score â‰¥ 7.0: create alerts record
+    â””â”€â”€ Update Redis: news_sentiment_cache, narrative_momentum_cache
+12.3 Narrative Tracking
+Active narrative clusters are tracked with momentum scores:
+Rising
+: Cluster article count increasing over 24h window
+Stable
+: Article count within Â±10% of 48h average
+Fading
+: Article count declining over 24h window
+Campaign Manager receives a daily narrative summary as part of the morning brief. War room team receives a real-time narrative momentum widget on the Command Centre.
+12.4 News Intelligence Display
+The News Intelligence module displays:
+Live Feed
+ â€” Real-time ingested articles with sentiment badge, impact score, source, and entity tags. Filterable by language, source tier, sentiment, and impact threshold.
+Sentiment Timeline
+ â€” 72-hour rolling chart of aggregate sentiment polarity (constituency-relevant articles only).
+Impact Leaderboard
+ â€” Top 10 highest-impact articles of the last 24 hours.
+Narrative Cluster Board
+ â€” All active clusters with momentum indicator, article count, and top headline per cluster.
+Source Health Monitor
+ â€” Per-feed last-ingestion timestamp, articles per day, and failure flag.
+13. Ground Operations
+13.1 Field Worker Management
+Deployment Tracking
+The system maintains a real-time map of active field workers across the constituency. Each worker has a profile record including:
+user_id
+, 
+name
+, 
+phone
+, 
+zone_id
+ (FK), 
+assigned_booths
+ (ARRAY)
+is_active
+ (online/offline status)
+last_checkin_at
+ (UTC timestamp)
+reports_today
+ (count, cached in Redis)
+productivity_score
+ (reports submitted Ã— severity weighting, rolling 7-day)
+Worker positions are updated via GPS-enabled check-in on report submission (not continuous GPS tracking, to avoid battery drain and privacy concerns on personal devices).
+Attendance Management
+Daily attendance is recorded through a booth check-in workflow:
+Worker opens mobile app â†’ taps "Check In to Booth"
+App captures GPS coordinate (optional â€” can be disabled for areas with poor signal)
+Worker selects booth from their assigned list or searches by number
+Check-in recorded in 
+worker_attendance
+ table with timestamp
+Zone dashboards show real-time attendance aggregates: workers expected vs. present, coverage gaps by booth.
+13.2 Field Report Schema
+Field reports are the primary ground truth signal of NETA AI. The mobile reporting form enforces structured input:
+Field
+Type
+Required
+Notes
+booth_id
+FK
+Yes
+Dropdown from assigned booths
+category
+ENUM
+Yes
+VOTER_MOOD, INFRASTRUCTURE, OPPOSITION_ACTIVITY, SECURITY, LOGISTICS, OTHER
+description
+Text (max 500 chars)
+Yes
+Free text; used for NLP processing
+severity
+INT (1â€“5)
+Yes
+1=Routine, 3=Noteworthy, 5=Emergency
+voter_sentiment
+ENUM
+Optional
+POSITIVE, NEUTRAL, NEGATIVE, MIXED
+photo_url
+String
+Optional
+S3/filesystem URL; max 10MB; MIME validated
+audio_url
+String
+Optional
+Phase 2; voice report transcription
+reported_at
+Timestamp
+Auto
+UTC; cannot be edited post-submission
+gps_lat
+, 
+gps_lng
+Float
+Optional
+Device-captured on submission
+13.3 Escalation Workflow
+Severity 4â€“5 reports automatically trigger an escalation record. The full escalation lifecycle:
+Field Report (Severity 4 or 5)
+         â”‚
+         â–¼
+   Escalation Record Created
+   â”œâ”€â”€ status: NEW
+   â”œâ”€â”€ sla_deadline: NOW + 30min (severity 5) / NOW + 2h (severity 4)
+   â”œâ”€â”€ assigned_to: zone Ground Commander (auto-assigned by zone_id)
+   â””â”€â”€ notification: WhatsApp â†’ Ground Commander
+         â”‚
+         â–¼
+   Ground Commander Acknowledges
+   â”œâ”€â”€ status: IN_PROGRESS
+   â”œâ”€â”€ acknowledged_at: timestamp
+   â””â”€â”€ SSE push: Command Centre escalation count updates
+         â”‚
+         â–¼
+   SLA Monitor (every 5 min check)
+   â”œâ”€â”€ If SLA_DEADLINE approaching (15 min): WhatsApp reminder
+   â””â”€â”€ If SLA_DEADLINE breached: CRITICAL alert â†’ Campaign Manager
+         â”‚
+         â–¼
+   Resolution
+   â”œâ”€â”€ status: RESOLVED
+   â”œâ”€â”€ resolved_at: timestamp
+   â”œâ”€â”€ resolution_notes: required (min 50 characters)
+   â””â”€â”€ SSE push: escalation queue count decrements
+Escalation SLA Table
+Severity
+SLA
+Assigned To
+Escalates To (if SLA breached)
+5 â€” Emergency
+30 minutes
+Ground Commander
+Campaign Manager (immediate)
+4 â€” High
+2 hours
+Ground Commander
+Campaign Manager (on breach)
+3 â€” Medium
+8 hours
+Ground Commander
+Zone review (on breach)
+1â€“2 â€” Routine
+24 hours
+Ground Commander
+No escalation
+13.4 Mood Analysis
+Aggregate sentiment extracted from field reports is visualized as a 
+Constituency Mood Map
+ â€” a zone-level choropleth overlaid on the constituency map:
+Color: Green (positive), Amber (neutral/mixed), Red (negative)
+Time window: Rolling 24 hours (configurable: 6h, 24h, 48h, 7-day)
+Calculation: Weighted average of 
+voter_sentiment
+ field values, weighted by report recency
+A zone-level mood time-series chart tracks sentiment trend over the campaign period â€” identifying mood deterioration before it becomes an electoral problem.
+14. Booth Management System
+14.1 Booth Data Architecture
+Every booth in the constituency (approximately 315 for Serilingampally AC-52) is represented as a first-class entity in the system with its own operational data profile.
+Booth Record Schema
+booths {
+    id                UUID PRIMARY KEY
+    constituency_id   UUID FK
+    booth_number      VARCHAR(10) NOT NULL UNIQUE
+    booth_name        VARCHAR(255)
+    zone_id           UUID FK â†’ campaign_zones
+    location          PostGIS POINT (SRID 4326)
+    address           TEXT
+    total_voters      INTEGER
+    female_voters     INTEGER
+    male_voters       INTEGER
+    third_gender      INTEGER
+    assigned_commander UUID FK â†’ users
+    volunteer_count   INTEGER (derived)
+    risk_score        DECIMAL(5,2) DEFAULT 50.0
+    contact_rate      DECIMAL(5,2) DEFAULT 0.0
+    health_score      DECIMAL(5,2) DEFAULT 50.0
+    last_report_at    TIMESTAMPTZ
+    last_contact_at   TIMESTAMPTZ
+    swing_booth       BOOLEAN DEFAULT FALSE
+    historical_margin DECIMAL(5,2)  -- prior election margin %
+    created_at        TIMESTAMPTZ
+    updated_at        TIMESTAMPTZ
+}
+14.2 Booth Risk Score Formula
+The booth risk score (0â€“100, higher = more at risk) is computed nightly and cached in Redis:
+risk_score = (
+    (100 - contact_rate_pct) Ã— 0.35        # Contact coverage deficit
+  + sentiment_negativity_score Ã— 0.25      # Ground sentiment penalty
+  + escalation_burden Ã— 0.20               # Open escalations weight
+  + staleness_penalty Ã— 0.15               # Days since last report
+  + volunteer_gap_penalty Ã— 0.05           # Coverage gap penalty
+)
+Where:
+  contact_rate_pct    = (voters_contacted / total_voters) Ã— 100
+  sentiment_negativity = (negative_reports / total_reports) Ã— 100 (last 48h)
+  escalation_burden   = min(open_escalation_count Ã— 10, 100)
+  staleness_penalty   = min(days_since_last_report Ã— 5, 40)
+  volunteer_gap_penalty = 100 if volunteer_count < 2 else 0
+Risk Color Classification
+Score Range
+Classification
+Action
+0â€“35
+ðŸŸ¢ 
+HEALTHY
+Standard operations
+36â€“60
+ðŸŸ¡ 
+WATCH
+Increase contact frequency
+61â€“80
+ðŸŸ  
+AT-RISK
+Deploy additional volunteers; daily check-in
+81â€“100
+ðŸ”´ 
+CRITICAL
+Immediate Ground Commander intervention; Campaign Manager alert
+14.3 Booth Health Score
+The booth health score (0â€“100, higher = healthier) is a complementary metric tracking operational vitality:
+health_score = (
+    contact_rate_pct Ã— 0.40
+  + recency_score Ã— 0.30     # 100 if report < 24h, 50 if < 48h, 20 if > 48h
+  + volunteer_coverage Ã— 0.20 # 100 if â‰¥ 3 volunteers, 67 if 2, 33 if 1, 0 if 0
+  + sentiment_positivity Ã— 0.10
+)
+14.4 Volunteer Mapping
+Each booth maintains a volunteer roster:
+booth_volunteers {
+    id              UUID PRIMARY KEY
+    booth_id        UUID FK â†’ booths
+    user_id         UUID FK â†’ users (nullable for non-registered volunteers)
+    volunteer_name  VARCHAR(255)
+    phone           VARCHAR(15)
+    role            ENUM (BOOTH_AGENT, VOTER_CONTACT, TRANSPORT, COORDINATOR)
+    shift_start     TIME
+    shift_end       TIME
+    notes           TEXT
+    is_confirmed    BOOLEAN DEFAULT FALSE
+    created_at      TIMESTAMPTZ
+}
+Booths with 
+volunteer_count < 2
+ are flagged with a coverage gap warning. The Booth Management view includes a "Coverage Gaps" filter that instantly surfaces all under-resourced booths.
+14.5 Contact Rate Tracking
+Voter contact is logged through the field worker mobile interface:
+Worker selects booth â†’ Opens contact log
+Marks individual voters as contacted (by voter ID from roll or by manual count)
+System updates 
+booth.contact_rate
+ in real time
+Ward-level and zone-level aggregate contact rates computed hourly by Celery task
+Target contact rates by campaign stage:
+Campaign Stage
+Target Contact Rate
+4 weeks before polling
+25%
+2 weeks before polling
+50%
+1 week before polling
+75%
+3 days before polling
+90%
+Polling Day
+100% (re-contact priority)
+15. Prediction & Sentiment Systems
+15.1 Win Probability Model
+The win probability model produces a constituency-level election outcome probability updated every 15 minutes throughout the campaign.
+Model Formula
+win_probability = sigmoid(
+    w1 Ã— contact_rate_normalized
+  + w2 Ã— news_sentiment_normalized
+  + w3 Ã— booth_health_aggregate
+  + w4 Ã— opposition_activity_penalty
+  + w5 Ã— historical_vote_share
+  + w6 Ã— field_mood_index
+  + bias
+) Ã— 100
+Default weights (campaign-manager configurable):
+  w1 (contact rate)       = 0.28
+  w2 (news sentiment)     = 0.18
+  w3 (booth health)       = 0.20
+  w4 (opposition penalty) = -0.15
+  w5 (historical share)   = 0.12
+  w6 (field mood)         = 0.17
+  bias                    = 0.10
+Normalization: all inputs normalized to [0, 1] range before weighting.
+Sigmoid: ensures output remains within (0%, 100%).
+The model stores daily snapshots in 
+intelligence_scores
+ for trend visualization. A 30-day trend chart is displayed on the Command Centre.
+Model Limitations (Disclosed)
+The model is a heuristic approximation, not a statistical election model
+Historical vote share data for Serilingampally may be incomplete for newer booth configurations
+Weight calibration is based on campaign manager judgment, not empirical training data (to be improved in Phase 2 with Bayesian updating)
+Adversarial events (e.g., opponent rally, negative viral story) may cause rapid score changes that should be interpreted contextually, not mechanically
+15.2 Sentiment Analysis Systems
+News Sentiment Aggregation
+Rolling weighted sentiment index for constituency-relevant news:
+constituency_sentiment_index = Î£(article_sentiment Ã— article_weight) / Î£(article_weight)
+Where:
+  article_weight = impact_score Ã— recency_decay
+  recency_decay  = e^(-0.05 Ã— hours_since_publication)
+  Window         = Last 24 hours (configurable)
+Displayed as a time-series chart on Command Centre and News Intelligence module.
+Field Sentiment Index
+Aggregate voter mood from field reports:
+field_sentiment_index = (
+    (positive_reports Ã— 1.0)
+  + (neutral_reports Ã— 0.5)
+  + (mixed_reports Ã— 0.25)
+  + (negative_reports Ã— 0.0)
+) / total_reports Ã— 100
+Window: configurable (6h, 24h, 48h, 7-day)
+15.3 Issue Severity Ranking
+Issues extracted from field reports and news articles are ranked using a composite severity model:
+issue_severity = (
+    frequency_score Ã— 0.30      # Reports mentioning issue in 48h
+  + sentiment_impact Ã— 0.30     # Avg negativity of issue-related content
+  + booth_spread_score Ã— 0.20   # Number of distinct booths reporting issue
+  + media_amplification Ã— 0.20  # Number of news articles covering issue
+) Ã— 10  # Scale to 0-10
+Top 5 issues by severity are displayed prominently on the Command Centre issue trends panel. Issues crossing severity 7.0 trigger CRITICAL alerts.
+16. Opposition Intelligence
+16.1 Purpose & Design Philosophy
+Opposition intelligence in NETA AI is 
+structured, systematic, and factual
+. The module monitors publicly available information â€” news coverage, public events, press statements, and field-observed opposition activity â€” to provide the campaign with awareness of what rivals are doing. The system explicitly does not enable or generate any disinformation, negative campaigns, or content targeting individuals.
+16.2 Opposition Monitoring Sources
+Source
+Type
+What Is Tracked
+RSS feeds (opposition-entity-filtered)
+Automated
+Articles mentioning rival candidate/party
+Field reports (category: OPPOSITION_ACTIVITY)
+Manual (ground workers)
+Opposition rallies, canvassing, distribution
+Public social media (when accessible)
+Phase 2
+Opposition social media posts and engagement
+News mentions comparison
+Automated
+Candidate coverage vs. opposition coverage volume
+16.3 Opposition Intelligence Views
+Comparative Sentiment Dashboard
+A dual-line time-series chart displaying:
+Blue line: Candidate news sentiment score (rolling 24h)
+Red line: Opposition candidate news sentiment score (rolling 24h)
+Divergence alerts: if opposition sentiment exceeds candidate sentiment by >0.3 points for more than 4 hours, a WARNING alert is generated.
+Opposition Activity Map
+Leaflet.js map layer showing:
+Opposition rally locations (sourced from field reports)
+Opposition canvassing zones (sourced from field reports)
+Opposition concentration heatmap (derived from field report density by zone)
+This map layer is toggled independently of the main constituency map and is visible only to Campaign Manager and above.
+Opposition Narrative Tracker
+Tracks narrative clusters where opposition entity is the primary subject:
+Narrative
+Momentum
+Article Count (24h)
+Sentiment
+Action
+(populated from live data)
+â†‘
+/â†’/â†“
+â€”
+â€”
+Counter-message / Monitor
+16.4 Counter-Intelligence Workflow
+When an opposition narrative reaches severity â‰¥7.0 or impact score â‰¥8.0:
+System generates a WARNING or CRITICAL alert in Command Centre
+Alert links to the narrative cluster with supporting articles
+Campaign Manager receives WhatsApp notification
+Alert includes a structured response recommendation (factual counter-narrative suggestion, not disinformation)
+Campaign Manager approves or modifies response
+Response action is logged in escalations table for accountability
+17. Security Architecture
+17.1 Security Design Philosophy
+NETA AI handles politically sensitive campaign intelligence, voter contact data, and operational plans. Security failures have election-outcome consequences. The security architecture follows a 
+defense-in-depth
+ model with multiple independent protection layers.
+17.2 Authentication & Session Management
+JWT Implementation
+# JWT configuration
+JWT_ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 15      # Short-lived access tokens
+REFRESH_TOKEN_EXPIRE_DAYS = 7         # Rotating refresh tokens
+# Cookie configuration (all tokens stored in httpOnly cookies)
+response.set_cookie(
+    key="access_token",
+    value=access_token,
+    httponly=True,         # JavaScript cannot access
+    secure=True,           # HTTPS only
+    samesite="strict",     # CSRF protection
+    max_age=900,           # 15 minutes
+    path="/api",           # API endpoints only
+)
+Token Lifecycle
+Event
+Action
+Login
+Issue access token (15 min) + refresh token (7 days) in httpOnly cookies
+API Request
+Validate access token from cookie; check Redis blacklist
+Access Token Expiry
+Client silently calls /auth/refresh; new access token issued
+Logout
+Both tokens added to Redis blacklist; cookies cleared
+Role Change
+All active tokens invalidated via Redis blacklist pattern
+Password Change
+All active tokens invalidated
+Account Suspension
+User record deactivated; all tokens invalidated
+Redis Token Blacklist
+# Token blacklist key pattern
+BLACKLIST_KEY = f"blacklist:token:{jti}"  # jti = JWT unique ID
+BLACKLIST_TTL = ACCESS_TOKEN_EXPIRE_SECONDS  # Auto-expires with token
+async def is_token_blacklisted(jti: str) -> bool:
+    return await redis_client.exists(f"blacklist:token:{jti}")
+17.3 Multi-Factor Authentication
+MFA (TOTP via RFC 6238) is 
+mandatory
+ for:
+Super Admin
+Campaign Manager
+MFA is 
+optional but encouraged
+ for:
+Ground Commander
+Data Analyst
+MFA is 
+disabled
+ for:
+Field Worker (UX friction would reduce adoption; compensated by IP-bound session and role scope limitation)
+17.4 Transport Security
+Control
+Configuration
+TLS Version
+TLS 1.3 minimum; TLS 1.2 allowed with forward secrecy ciphers; TLS 1.0/1.1 disabled
+HSTS
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+HTTPS Redirect
+Nginx: return 301 https://$host$request_uri for all HTTP traffic
+Certificate
+Let's Encrypt; auto-renewal via Certbot; expiry monitor alert at 30 days
+17.5 Application Security Controls
+Control
+Implementation
+Content Security Policy
+default-src 'self'; script-src 'self' 'nonce-{random}'; img-src 'self' data: https:; connect-src 'self' https://api.netaai.in
+CORS
+Whitelist-only: 
+ALLOWED_ORIGINS=["https://app.netaai.in"]
+; no wildcard
+Rate Limiting
+Nginx: 100 req/min per authenticated IP; 10 req/min for /auth/ endpoints; 5 req/min for /auth/login
+Request Size
+Nginx: 
+client_max_body_size 11M
+ (field report photo uploads max 10MB)
+SQL Injection
+SQLAlchemy parameterized queries; no string interpolation in SQL
+XSS
+React JSX auto-escaping; CSP; no dangerouslySetInnerHTML usage
+CSRF
+SameSite=Strict cookie; double-submit cookie pattern for state-changing requests
+17.6 Data Security
+Control
+Implementation
+Password Hashing
+bcrypt with cost factor 12
+PII Encryption
+Voter phone numbers and addresses encrypted with AES-256-GCM at rest
+Database Credentials
+Environment variable injection; never in source code
+Redis AUTH
+Password-protected Redis instance; not exposed on public interface
+File Upload Validation
+MIME type check, file extension whitelist (.jpg, .jpeg, .png, .webp), magic byte validation, max 10MB
+Secrets Management
+.env file with 600 permissions; never committed to version control
+17.7 Audit Logging
+All data-write operations are logged to the 
+audit_logs
+ table:
+CREATE TABLE audit_logs (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id),
+    action      VARCHAR(100) NOT NULL,  -- e.g., 'field_report.create', 'user.role_change'
+    entity_type VARCHAR(50),
+    entity_id   UUID,
+    old_value   JSONB,
+    new_value   JSONB,
+    ip_address  INET,
+    user_agent  TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+Audit logs are immutable (no UPDATE or DELETE permissions granted to the application user on this table). Retention: 3 years.
+18. Deployment Architecture
+18.1 Docker Compose Service Topology
+# Production service topology (docker-compose.prod.yml)
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/ssl/certs:ro
+      - static_files:/var/www/static:ro
+    depends_on: [api]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+  api:
+    image: neta-api:${TAG:-latest}
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  celery_worker:
+    image: neta-api:${TAG:-latest}
+    command: celery -A app.celery worker --loglevel=info --concurrency=4
+    depends_on: [redis, postgres]
+    restart: unless-stopped
+  celery_beat:
+    image: neta-api:${TAG:-latest}
+    command: celery -A app.celery beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on: [redis, postgres]
+    restart: unless-stopped
+  celery_flower:
+    image: mher/flower:2.0
+    ports: ["5555:5555"]  # Internal only; Nginx proxies with auth
+    depends_on: [redis]
+    restart: unless-stopped
+  postgres:
+    image: postgis/postgis:15-3.3-alpine
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes: [redis_data:/data]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+18.2 Nginx Configuration
+# Key security and performance directives
+server {
+    listen 443 ssl http2;
+    server_name app.netaai.in;
+    # SSL
+    ssl_certificate /etc/ssl/certs/fullchain.pem;
+    ssl_certificate_key /etc/ssl/certs/privkey.pem;
+    ssl_protocols TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    server_tokens off;
+    # Rate limiting
+    limit_req zone=api burst=20 nodelay;
+    limit_req zone=auth burst=5 nodelay;
+    # Static files (Vite build output)
+    location / {
+        root /var/www/static;
+        try_files $uri $uri/ /index.html;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    # API proxy
+    location /api/ {
+        proxy_pass http://api:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        client_max_body_size 11M;
+    }
+    # SSE endpoint â€” disable buffering
+    location /api/stream {
+        proxy_pass http://api:8000;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 86400s;  # 24h SSE connection
+        add_header X-Accel-Buffering "no";
+    }
+}
+18.3 Environment Variables
+Variable
+Description
+Example
+DATABASE_URL
+PostgreSQL connection string
+postgresql+asyncpg://user:pass@postgres/netaai
+REDIS_URL
+Redis connection string
+redis://:password@redis:6379/0
+SECRET_KEY
+256-bit random key for JWT signing
+openssl rand -hex 32
+ALLOWED_ORIGINS
+CORS whitelist (JSON array)
+["https://app.netaai.in"]
+WHATSAPP_API_TOKEN
+Meta WhatsApp Business API bearer token
+â€”
+WHATSAPP_PHONE_ID
+WhatsApp Business phone number ID
+â€”
+POSTGRES_DB
+Database name
+netaai_prod
+POSTGRES_USER
+Database user
+netaai_app
+POSTGRES_PASSWORD
+Database password
+â‰¥
+32 random characters
+REDIS_PASSWORD
+Redis AUTH password
+â‰¥
+32 random characters
+NLP_MODEL_PATH
+Path to fine-tuned NLP model
+/models/indic-bert-political
+CELERY_CONCURRENCY
+Celery worker process count
+4
+TAG
+Docker image tag for deployment
+v1.0.2
+19. DevOps & CI/CD
+19.1 Development Workflow
+Developer Branch
+    â”‚â”€â”€ git push origin feature/xxx
+    â”‚
+GitHub Actions:
+    â”œâ”€â”€ Lint: ruff (Python), ESLint (React)
+    â”œâ”€â”€ Type check: mypy (Python), tsc (TypeScript)
+    â”œâ”€â”€ Unit tests: pytest (backend), Vitest (frontend)
+    â”œâ”€â”€ Integration tests: pytest with test DB
+    â””â”€â”€ Docker build: verify image builds
+    â”‚
+Pull Request â†’ Code Review â†’ Merge to main
+    â”‚
+GitHub Actions (main branch):
+    â”œâ”€â”€ Full test suite
+    â”œâ”€â”€ Docker build and push to registry
+    â”œâ”€â”€ Tag image with SHA + version
+    â””â”€â”€ Deploy to staging (auto)
+    â”‚
+Manual approval â†’ Deploy to production
+    â””â”€â”€ docker compose pull && docker compose up -d
+19.2 Deployment Commands
+# Production deployment
+git pull origin main
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d --no-deps api celery_worker celery_beat
+docker compose -f docker-compose.prod.yml exec api alembic upgrade head  # DB migrations
+# Zero-downtime API restart (single instance)
+docker compose -f docker-compose.prod.yml restart api
+# View live logs
+docker compose -f docker-compose.prod.yml logs -f api celery_worker
+# Emergency rollback
+docker compose -f docker-compose.prod.yml stop api
+docker tag neta-api:previous neta-api:latest
+docker compose -f docker-compose.prod.yml up -d api
+19.3 Database Migrations
+Alembic manages all schema migrations. Migration discipline:
+All schema changes require an Alembic migration file
+Migrations are backward-compatible (no destructive changes without explicit approval)
+Migrations tested on a staging database before production deployment
+Migration history maintained in version control
+20. Database Design
+20.1 Complete Schema
+-- Core identity and access
+CREATE TABLE users (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name       VARCHAR(255) NOT NULL,
+    email           VARCHAR(255) UNIQUE NOT NULL,
+    phone           VARCHAR(15),
+    password_hash   VARCHAR(255) NOT NULL,
+    role            VARCHAR(50) NOT NULL CHECK (role IN (
+                        'super_admin','campaign_manager','ground_commander',
+                        'data_analyst','field_worker','candidate')),
+    zone_id         UUID REFERENCES campaign_zones(id),
+    is_active       BOOLEAN DEFAULT TRUE,
+    mfa_secret      VARCHAR(255),  -- TOTP secret (encrypted)
+    mfa_enabled     BOOLEAN DEFAULT FALSE,
+    last_login      TIMESTAMPTZ,
+    login_attempts  INTEGER DEFAULT 0,
+    locked_until    TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+-- Constituency reference
+CREATE TABLE constituencies (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            VARCHAR(255) NOT NULL,
+    state           VARCHAR(100) NOT NULL,
+    ac_number       VARCHAR(10) NOT NULL UNIQUE,
+    total_booths    INTEGER,
+    total_voters    INTEGER,
+    geojson_url     TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+-- Campaign zones (operational sub-divisions)
+CREATE TABLE campaign_zones (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    constituency_id UUID NOT NULL REFERENCES constituencies(id),
+    zone_name       VARCHAR(100) NOT NULL,
+    zone_code       VARCHAR(10) NOT NULL,
+    description     TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+-- Booths
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE TABLE booths (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    constituency_id     UUID NOT NULL REFERENCES constituencies(id),
+    zone_id             UUID REFERENCES campaign_zones(id),
+    booth_number        VARCHAR(10) NOT NULL,
+    booth_name          VARCHAR(255),
+    location            GEOGRAPHY(POINT, 4326),
+    address             TEXT,
+    total_voters        INTEGER DEFAULT 0,
+    female_voters       INTEGER DEFAULT 0,
+    male_voters         INTEGER DEFAULT 0,
+    assigned_commander  UUID REFERENCES users(id),
+    risk_score          DECIMAL(5,2) DEFAULT 50.0,
+    contact_rate        DECIMAL(5,2) DEFAULT 0.0,
+    health_score        DECIMAL(5,2) DEFAULT 50.0,
+    swing_booth         BOOLEAN DEFAULT FALSE,
+    historical_margin   DECIMAL(5,2),
+    last_report_at      TIMESTAMPTZ,
+    created_at          TIMESTAMPTZ DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (constituency_id, booth_number)
+);
+-- Field reports
+CREATE TABLE field_reports (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    booth_id        UUID NOT NULL REFERENCES booths(id),
+    reported_by     UUID NOT NULL REFERENCES users(id),
+    category        VARCHAR(50) NOT NULL CHECK (category IN (
+                        'VOTER_MOOD','INFRASTRUCTURE','OPPOSITION_ACTIVITY',
+                        'SECURITY','LOGISTICS','OTHER')),
+    description     TEXT NOT NULL CHECK (length(description) <= 500),
+    severity        SMALLINT NOT NULL CHECK (severity BETWEEN 1 AND 5),
+    voter_sentiment VARCHAR(20) CHECK (voter_sentiment IN (
+                        'POSITIVE','NEUTRAL','NEGATIVE','MIXED')),
+    sentiment_score DECIMAL(4,3),  -- NLP output: -1.000 to 1.000
+    photo_url       TEXT,
+    gps_lat         DECIMAL(9,6),
+    gps_lng         DECIMAL(9,6),
+    processed       BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_field_reports_booth_created ON field_reports(booth_id, created_at DESC);
+CREATE INDEX idx_field_reports_severity ON field_reports(severity) WHERE severity >= 4;
+-- News articles
+CREATE TABLE news_articles (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    feed_source         VARCHAR(100) NOT NULL,
+    feed_tier           SMALLINT NOT NULL CHECK (feed_tier IN (1, 2, 3)),
+    title               TEXT NOT NULL,
+    url                 TEXT NOT NULL UNIQUE,
+    body_excerpt        TEXT,
+    language            VARCHAR(10) DEFAULT 'en',
+    published_at        TIMESTAMPTZ,
+    ingested_at         TIMESTAMPTZ DEFAULT NOW(),
+    sentiment_polarity  DECIMAL(4,3),  -- -1.000 to 1.000
+    political_tone      VARCHAR(30) CHECK (political_tone IN (
+                            'PRO_INCUMBENT','NEUTRAL','ANTI_INCUMBENT')),
+    impact_score        DECIMAL(4,2),  -- 0.00 to 10.00
+    entity_tags         JSONB DEFAULT '[]',  -- Array of extracted entities
+    narrative_cluster   VARCHAR(100),
+    processed           BOOLEAN DEFAULT FALSE
+);
+CREATE INDEX idx_news_published_sentiment ON news_articles(published_at DESC, sentiment_polarity);
+CREATE INDEX idx_news_impact ON news_articles(impact_score DESC) WHERE impact_score >= 5.0;
+-- Alerts
+CREATE TABLE alerts (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_type      VARCHAR(100) NOT NULL,
+    severity        VARCHAR(20) NOT NULL CHECK (severity IN ('CRITICAL','WARNING','INFO')),
+    source_module   VARCHAR(50) NOT NULL,
+    title           VARCHAR(255) NOT NULL,
+    description     TEXT,
+    affected_booths UUID[],
+    meta            JSONB DEFAULT '{}',
+    acknowledged    BOOLEAN DEFAULT FALSE,
+    acknowledged_by UUID REFERENCES users(id),
+    acknowledged_at TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_alerts_severity_created ON alerts(severity, created_at DESC) WHERE NOT acknowledged;
+-- Escalations
+CREATE TABLE escalations (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id            UUID REFERENCES alerts(id),
+    field_report_id     UUID REFERENCES field_reports(id),
+    assigned_to         UUID NOT NULL REFERENCES users(id),
+    assigned_by         UUID REFERENCES users(id),
+    status              VARCHAR(20) NOT NULL DEFAULT 'NEW'
+                            CHECK (status IN ('NEW','ASSIGNED','IN_PROGRESS','RESOLVED','CLOSED')),
+    sla_minutes         INTEGER NOT NULL,
+    sla_deadline        TIMESTAMPTZ NOT NULL,
+    whatsapp_sent       BOOLEAN DEFAULT FALSE,
+    reminder_sent       BOOLEAN DEFAULT FALSE,
+    resolved_at         TIMESTAMPTZ,
+    resolution_notes    TEXT CHECK (length(resolution_notes) >= 50 OR resolved_at IS NULL),
+    created_at          TIMESTAMPTZ DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+-- Intelligence briefs (AI-generated daily briefs)
+CREATE TABLE intelligence_briefs (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    brief_date          DATE NOT NULL UNIQUE,
+    executive_summary   TEXT NOT NULL,
+    top_risks           JSONB NOT NULL DEFAULT '[]',
+    opportunity_zones   JSONB NOT NULL DEFAULT '[]',
+    recommended_actions JSONB NOT NULL DEFAULT '[]',
+    narrative_digest    TEXT,
+    win_probability     DECIMAL(5,2),
+    generated_at        TIMESTAMPTZ DEFAULT NOW(),
+    delivered_at        TIMESTAMPTZ,
+    delivery_status     VARCHAR(20) DEFAULT 'PENDING'
+);
+-- Intelligence scores (time-series for trend visualization)
+CREATE TABLE intelligence_scores (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_type     VARCHAR(20) NOT NULL CHECK (entity_type IN ('constituency','zone','booth')),
+    entity_id       UUID NOT NULL,
+    score_type      VARCHAR(50) NOT NULL,
+    score_value     DECIMAL(7,4) NOT NULL,
+    computed_at     TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_intelligence_scores_entity_type ON intelligence_scores(entity_id, score_type, computed_at DESC);
+-- Voter rolls
+CREATE TABLE voters (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    booth_id        UUID NOT NULL REFERENCES booths(id),
+    voter_id        VARCHAR(50) UNIQUE,
+    full_name       VARCHAR(255) NOT NULL,
+    gender          CHAR(1) CHECK (gender IN ('M','F','O')),
+    age             SMALLINT,
+    phone_encrypted BYTEA,  -- AES-256-GCM encrypted
+    address_encrypted BYTEA,
+    is_contacted    BOOLEAN DEFAULT FALSE,
+    last_contacted  TIMESTAMPTZ,
+    upload_batch_id UUID,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_voters_booth ON voters(booth_id);
+-- Audit log (immutable)
+CREATE TABLE audit_logs (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id),
+    action      VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id   UUID,
+    old_value   JSONB,
+    new_value   JSONB,
+    ip_address  INET,
+    user_agent  TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+-- Revoke UPDATE and DELETE from app user on this table
+REVOKE UPDATE, DELETE ON audit_logs FROM netaai_app;
+21. Redis & Celery Architecture
+21.1 Redis Key Schema
+Key Pattern
+Type
+TTL
+Purpose
+session:access:{jti}
+String
+900s (15 min)
+Access token validity marker
+session:refresh:{jti}
+String
+604800s (7 days)
+Refresh token validity marker
+blacklist:token:{jti}
+String
+Token TTL
+Revoked token blacklist
+kpi:constituency:{id}
+Hash
+60s
+Live KPI aggregate (contact rate, workers online, etc.)
+kpi:booth:{id}:health
+String
+300s
+Booth health score cache
+kpi:booth:{id}:risk
+String
+86400s
+Booth risk score cache (nightly batch)
+news:sentiment:index
+String
+600s
+24h rolling news sentiment score
+news:narrative:{cluster}:momentum
+String
+1800s
+Narrative cluster momentum score
+worker:active:{zone_id}
+Set
+300s
+Set of active worker IDs per zone
+win_probability:{constituency_id}
+String
+900s
+Latest win probability score
+rate_limit:{ip}:api
+Counter
+60s
+API rate limit counter per IP
+rate_limit:{ip}:auth
+Counter
+60s
+Auth endpoint rate limit per IP
+escalation:sla:{id}
+String
+Until deadline
+Escalation SLA tracking
+21.2 Celery Task Registry
+Task Name
+Queue
+Schedule
+Priority
+fetch_rss_feeds
+feeds
+Every 5 min
+HIGH
+process_news_article
+nlp
+Chained
+HIGH
+compute_booth_risk_scores
+scoring
+00:01 IST daily
+MEDIUM
+compute_win_probability
+scoring
+Every 15 min
+HIGH
+generate_morning_brief
+briefs
+05:45 IST daily
+CRITICAL
+aggregate_kpis
+kpis
+Every 60 sec
+HIGH
+monitor_escalation_slas
+ops
+Every 5 min
+HIGH
+compute_opposition_scores
+intel
+Every 10 min
+MEDIUM
+process_voter_roll_upload
+data
+On-demand
+LOW
+send_whatsapp_alert
+alerts
+Event-driven
+CRITICAL
+cleanup_stale_sessions
+maintenance
+03:00 IST daily
+LOW
+backup_verification_check
+maintenance
+04:00 IST daily
+LOW
+21.3 Celery Worker Configuration
+# Celery configuration
+CELERY_TASK_QUEUES = {
+    'feeds':       {'exchange': 'feeds', 'routing_key': 'feeds'},
+    'nlp':         {'exchange': 'nlp', 'routing_key': 'nlp'},
+    'scoring':     {'exchange': 'scoring', 'routing_key': 'scoring'},
+    'briefs':      {'exchange': 'briefs', 'routing_key': 'briefs'},
+    'kpis':        {'exchange': 'kpis', 'routing_key': 'kpis'},
+    'ops':         {'exchange': 'ops', 'routing_key': 'ops'},
+    'alerts':      {'exchange': 'alerts', 'routing_key': 'alerts'},
+    'data':        {'exchange': 'data', 'routing_key': 'data'},
+    'maintenance': {'exchange': 'maintenance', 'routing_key': 'maintenance'},
+}
+# Worker specialization (production)
+# Worker 1: high-priority operational tasks
+# celery -A app.celery worker -Q feeds,kpis,ops,alerts --concurrency=4
+# Worker 2: NLP processing (CPU-intensive)
+# celery -A app.celery worker -Q nlp --concurrency=2
+# Worker 3: scoring and intelligence
+# celery -A app.celery worker -Q scoring,briefs,intel --concurrency=2
+# Worker 4: background and data operations
+# celery -A app.celery worker -Q data,maintenance --concurrency=2
+21.4 SSE Architecture
+Server-Sent Events power all real-time dashboard updates:
+# FastAPI SSE endpoint
+@router.get("/api/stream")
+async def event_stream(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    async def event_generator():
+        pubsub = redis_client.pubsub()
+        channels = get_subscribed_channels(current_user.role, current_user.zone_id)
+        await pubsub.subscribe(*channels)
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                message = await pubsub.get_message(timeout=1.0)
+                if message and message['type'] == 'message':
+                    yield f"data: {message['data'].decode()}\n\n"
+                # Heartbeat every 30 seconds to prevent proxy timeout
+                yield ": heartbeat\n\n"
+                await asyncio.sleep(30)
+        finally:
+            await pubsub.unsubscribe(*channels)
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # Disable Nginx buffering
+        }
+    )
+22. GeoJSON Mapping System
+22.1 GeoJSON Data Architecture
+NETA AI maintains a hierarchical GeoJSON layer system:
+Layer
+Data
+Source
+Format
+Storage
+Constituency Boundary
+AC-52 outer boundary
+ECI shapefile â†’ GeoJSON
+Polygon
+Static file + DB
+Ward Boundaries
+Municipal ward polygons
+GHMC GIS data
+MultiPolygon
+Static file
+Booth Catchments
+Approximate booth coverage zones
+ECI + derived
+Polygon
+PostGIS table
+Booth Points
+Individual booth locations
+ECI + GPS validation
+Point
+PostGIS (booths.location)
+Zone Boundaries
+Campaign management zones
+Custom defined
+Polygon
+Static GeoJSON file
+Road Network
+Major roads and landmarks
+OpenStreetMap
+LineString
+Vector tiles
+22.2 Map Layer Architecture
+Leaflet.js Map Container
+    â”‚
+    â”œâ”€â”€ Base Layer: OpenStreetMap tiles (CDN)
+    â”‚
+    â”œâ”€â”€ Layer Group: Constituency Layers (toggleable)
+    â”‚   â”œâ”€â”€ Constituency boundary (GeoJSON â€” always visible)
+    â”‚   â”œâ”€â”€ Ward boundaries (GeoJSON â€” toggle)
+    â”‚   â””â”€â”€ Zone boundaries (GeoJSON â€” toggle)
+    â”‚
+    â”œâ”€â”€ Layer Group: Data Layers (toggleable, mutually exclusive)
+    â”‚   â”œâ”€â”€ Booth Health Choropleth
+    â”‚   â”œâ”€â”€ Booth Risk Choropleth
+    â”‚   â”œâ”€â”€ Contact Rate Choropleth
+    â”‚   â”œâ”€â”€ Voter Density Choropleth
+    â”‚   â””â”€â”€ Sentiment Heatmap
+    â”‚
+    â”œâ”€â”€ Marker Layer: Booth Markers (always visible)
+    â”‚   â”œâ”€â”€ Color-coded by selected data layer
+    â”‚   â””â”€â”€ Click â†’ Booth detail popup
+    â”‚
+    â”œâ”€â”€ Marker Layer: Field Worker Positions (toggleable)
+    â”‚   â””â”€â”€ Last-known GPS from most recent report
+    â”‚
+    â””â”€â”€ Marker Layer: Opposition Activity (toggleable, CM+ only)
+        â””â”€â”€ Field-reported opposition events
+22.3 Booth Popup Data Card
+On clicking any booth marker:
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ðŸ“ BOOTH 147 â€” Kondapur PS         â”‚
+â”‚ Zone: Z-01 Kondapur                 â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ Total Voters: 1,247                 â”‚
+â”‚ Contacted: 623 (49.9%)              â”‚
+â”‚ Health Score: 72/100 ðŸŸ¡             â”‚
+â”‚ Risk Score: 38/100 ðŸŸ¡               â”‚
+â”‚ Volunteers: 3 assigned              â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ Last Report: 2h ago                 â”‚
+â”‚ Open Escalations: 0                 â”‚
+â”‚ Mood: POSITIVE                      â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ Commander: Ramesh Kumar             â”‚
+â”‚ [View Full Booth] [Add Report]      â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+22.4 GeoJSON Performance Optimization
+Simplification
+: Booth catchment polygons simplified to 0.001Â° precision using 
+shapely.simplify()
+ before storage â€” reduces file size by ~60% with negligible visual quality loss
+Lazy loading
+: Ward and zone boundary GeoJSON loaded on-demand when those layers are toggled, not on initial map load
+Tile caching
+: Nginx caches OSM base tiles with 1-hour TTL to reduce external tile server dependency
+Clustering
+: At zoom levels < 12, booth markers are clustered using Leaflet.markercluster; full markers visible at zoom â‰¥ 13
+23. Mobile Operations
+23.1 Mobile Design Strategy
+Field workers represent the largest user cohort (potentially 500+ per constituency) and operate on mid-range Android devices over 3G/4G networks. The mobile experience is designed with these constraints as primary design constraints, not edge cases.
+23.2 PWA Configuration
+// Vite PWA Plugin manifest
+{
+  "name": "NETA AI Field",
+  "short_name": "NETA AI",
+  "description": "Field operations for NETA AI campaign platform",
+  "start_url": "/field/",
+  "display": "standalone",
+  "background_color": "#1B2A4A",
+  "theme_color": "#1B2A4A",
+  "icons": [
+    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
+Service worker caches:
+Field report form: offline-capable (IndexedDB draft storage)
+Booth list for assigned zone: cached for 6 hours
+Static assets: cache-first strategy
+23.3 Responsive Breakpoints
+Viewport
+Target Device
+Primary Features Available
+< 480px
+Mobile portrait (primary field worker)
+Report form, booth check-in, alert view, task list
+480â€“768px
+Mobile landscape / phablet
+Extended field view, attendance log, notification center
+768â€“1024px
+Tablet
+Full field view + condensed command dashboard, zone map
+1024px+
+Desktop / laptop
+Full command centre, multi-panel analytics, all modules
+23.4 Mobile-Specific UX Patterns
+Touch targets
+: Minimum 48Ã—48px for all interactive elements per WCAG 2.1 guidelines
+One-thumb operation
+: Primary actions accessible in bottom 40% of screen
+Large text fields
+: Input font size â‰¥ 16px to prevent iOS auto-zoom
+Camera integration
+: Native file input with 
+accept="image/*" capture="environment"
+ for field photos
+Offline draft saving
+: Incomplete reports saved to IndexedDB; sync queue uploads automatically on reconnection
+Data-saver mode
+: Images default to upload-optional; toggle in worker profile settings
+Simplified navigation
+: Bottom tab bar with 4 primary actions (Report, Check In, My Booths, Alerts)
+24. WhatsApp Integration
+24.1 Integration Architecture
+NETA AI uses the 
+Meta WhatsApp Business Cloud API
+ for operational alert delivery. All messages use pre-approved WhatsApp message templates to comply with Meta's policies.
+NETA AI Backend (Celery task)
+    â”‚â”€â”€ POST https://graph.facebook.com/v18.0/{phone_id}/messages
+    â”‚   Authorization: Bearer {WHATSAPP_API_TOKEN}
+    â”‚   Body: { "to": recipient_phone, "template": template_name, "parameters": [...] }
+    â”‚
+WhatsApp Business API
+    â””â”€â”€ Delivers to recipient's WhatsApp number
+    â”‚
+Webhook (inbound) â†’ FastAPI /api/whatsapp/webhook
+    â””â”€â”€ Delivery status updates (SENT, DELIVERED, READ, FAILED)
+24.2 Message Template Catalogue
+Template Name
+Trigger
+Recipient
+Content Summary
+morning_brief_ready
+Daily 06:00 IST
+Campaign Manager
+"Your NETA AI morning brief is ready. [Date summary]. Log in to view."
+critical_escalation
+Severity 5 field report
+Ground Commander + CM
+"CRITICAL: Severity 5 report at Booth {number} â€” {category}. SLA: 30 minutes. Open NETA AI immediately."
+escalation_sla_breach
+SLA deadline passed
+Campaign Manager
+"SLA BREACH: Escalation #{id} at Booth {number} has exceeded the {n}-minute SLA. Immediate action required."
+high_impact_news
+News impact score â‰¥ 8.0
+Campaign Manager
+"HIGH IMPACT: '{title}' [{source}] â€” Sentiment: {tone}. Impact score: {score}/10."
+booth_critical_risk
+Booth risk score crosses 80
+Ground Commander
+"RISK ALERT: Booth {number} has reached CRITICAL risk score {score}/100. Check NETA AI for details."
+win_probability_drop
+Win probability drops >5% in 1 hour
+Campaign Manager
+"ALERT: Win probability has dropped {delta}% in the last 60 minutes. Current: {value}%. Open Command Centre."
+system_health_alert
+API/service health check failure
+Super Admin
+"SYSTEM ALERT: {service} is not responding. Check the Admin Dashboard immediately."
+24.3 Delivery & Failure Handling
+Message delivery status tracked in 
+whatsapp_delivery_log
+ table
+Failed messages retried up to 3 times with 5-minute intervals
+If delivery fails after 3 retries: fallback SMS via configured provider (Phase 2); log failure in audit table
+Delivery failure rate alert: if >5% failure rate in 1 hour, Admin Dashboard alert generated
+24.4 Compliance
+All WhatsApp templates pre-approved by Meta before production deployment
+Campaign-related broadcasts (voter outreach) require explicit voter opt-in â€” managed separately from operational alerts
+Operational alerts (to campaign team members) use the campaign team's registered numbers with their consent
+No voter personal data (from voter rolls) is sent via WhatsApp in any format
+25. Performance Optimization
+25.1 Backend Performance
+Optimization
+Implementation
+Impact
+Async I/O
+FastAPI + asyncpg: all DB and Redis operations are non-blocking
+Handles 10Ã— more concurrent connections vs. synchronous
+Connection Pooling
+asyncpg pool: min=5, max=20 connections
+Eliminates connection overhead for high-frequency queries
+Redis KPI Cache
+Hot aggregates cached with 60s TTL; eliminates repeated COUNT/SUM queries
+KPI endpoint P99 < 20ms
+Query Optimization
+Composite indexes on hot query paths; EXPLAIN ANALYZE run on all queries >10ms
+Booth list P99 < 50ms
+Celery Batch Processing
+RSS articles processed in batches of 50
+Reduces per-task overhead by ~70%
+Eager Loading
+SQLAlchemy selectinload for related objects on list endpoints
+Eliminates N+1 query patterns
+25.2 Frontend Performance
+Optimization
+Implementation
+Target
+Bundle Splitting
+Vite: vendor chunk, map chunk, per-route lazy chunks
+Initial bundle < 150KB gzipped
+Lazy Routes
+React.lazy + Suspense for all non-entry routes
+Non-entry routes load on demand
+Memoization
+React.memo on KPI cards, alert rows, booth list items
+Prevents unnecessary re-renders on SSE updates
+Virtual Lists
+React-window for booth list (300+ rows), news feed, voter contact log
+Constant memory regardless of list length
+Image Optimization
+WebP conversion, responsive srcset, lazy loading
+60% smaller image payloads
+Cache Strategy
+React Query: news feed (5 min), constituency data (1h), voter roll (24h)
+Reduces API calls by ~80%
+SSE Throttling
+KPI updates batched on backend: max 1 push per 5 seconds per channel
+Prevents UI thrashing on rapid data changes
+25.3 Network Performance
+Optimization
+Implementation
+Compression
+Nginx gzip on all text responses (JSON, CSS, JS) â€” 60â€“80% size reduction
+Static Asset CDN
+Vite build output served via Nginx with 1-year Cache-Control immutable headers
+HTTP/2
+Nginx HTTP/2 enabled â€” multiplexed requests, header compression
+Preconnect
+HTML includes 
+<link rel="preconnect">
+ for API domain and tile server
+26. Monitoring & Logging
+26.1 Application Monitoring Stack
+Tool
+Purpose
+Deployment
+Prometheus
+Metrics collection: API latency, Celery queue depth, Redis memory, DB connections
+Docker sidecar
+Grafana
+Metrics visualization: real-time dashboards for all system components
+Docker service
+Sentry
+Runtime error tracking: Python SDK (backend) + JavaScript SDK (frontend)
+Cloud-hosted
+UptimeRobot
+External HTTP health monitoring: ping /api/health every 5 minutes
+Cloud-hosted (free tier)
+Celery Flower
+Celery task monitoring: queue depth, failed tasks, worker health
+Docker service (internal)
+26.2 Logging Architecture
+# Structured JSON logging (structlog)
+import structlog
+logger = structlog.get_logger()
+# Log format example
+logger.info(
+    "field_report.created",
+    report_id=str(report.id),
+    booth_id=str(report.booth_id),
+    severity=report.severity,
+    user_id=str(current_user.id),
+    duration_ms=elapsed,
+)
+All logs output as JSON with standard fields: 
+timestamp
+, 
+level
+, 
+event
+, 
+user_id
+, 
+request_id
+, 
+duration_ms
+. Log files rotated at 100MB, retained for 30 days. Critical errors pushed to Sentry in real time.
+26.3 Key Dashboards & Alerts
+Dashboard
+Key Metrics
+Alert Threshold
+API Health
+Request rate, P99 latency, error rate
+Error rate > 1% â†’ alert
+Celery Operations
+Queue depth per queue, failed task count
+Queue depth > 500 â†’ alert
+Database
+Connection pool usage, slow queries, table sizes
+Pool > 90% â†’ alert
+Redis
+Memory usage, hit rate, eviction rate
+Memory > 80% â†’ alert
+RSS Pipeline
+Articles ingested per hour, feed failure count
+Feed failure > 3 consecutive â†’ alert
+SSE Connections
+Active connection count, reconnection rate
+â€” 
+(informational)
+27. Scalability Planning
+27.1 Horizontal Scaling Architecture
+NETA AI v1.0 is designed for single-constituency deployment on a VPS instance (4 vCPU, 8GB RAM target). The architecture is stateless at the API layer, enabling horizontal scaling without application changes.
+Scaling Decision Points
+Load Threshold
+Action
+Method
+API CPU > 70% sustained
+Add API replica
+docker compose scale api=2
+ + Nginx upstream round-robin
+Celery queue depth > 1000
+Add Celery workers
+docker compose scale celery_worker=2
+Redis memory > 4GB
+Upgrade Redis instance
+Redis Cluster for distributed memory
+DB connections maxed
+Increase pool / add pgBouncer
+pgBouncer connection multiplexer
+10+ constituencies
+Dedicated DB per constituency
+Schema isolation with shared auth service
+27.2 Multi-Constituency Architecture
+For v2.0 multi-constituency deployment:
+Shared Auth Service
+    â””â”€â”€ Single JWT authority for all constituencies
+Per-Constituency Services:
+    â”œâ”€â”€ Dedicated API instance (constituency_id header routing)
+    â”œâ”€â”€ Dedicated Celery workers (constituency-scoped queues)
+    â”œâ”€â”€ Shared PostgreSQL (constituency_id FK isolation)
+    â””â”€â”€ Shared Redis (key namespacing: `{constituency_id}:kpi:...`)
+Global Command Dashboard:
+    â””â”€â”€ Cross-constituency aggregation for party leadership view
+27.3 Capacity Planning
+User Count
+API Instances
+Celery Workers
+PostgreSQL
+Redis
+<200 users (1 constituency)
+1
+2
+1 Ã— 4vCPU 8GB
+1 Ã— 2GB
+200â€“1000 users (1â€“3 constituencies)
+2
+4
+1 Ã— 8vCPU 16GB
+1 Ã— 4GB
+1000â€“5000 users (5â€“10 constituencies)
+4
+8
+1 Ã— 16vCPU 32GB + read replica
+Redis Cluster
+5000+ users (10+ constituencies)
+8+
+16+
+PostgreSQL cluster
+Redis Cluster
+28. Risk Analysis
+Risk
+Likelihood
+Impact
+Mitigation
+RSS feed downtime
+Medium
+HIGH
+Retry with exponential backoff; fallback to cached articles; admin alert after 3 failures; manual article entry in News module
+WhatsApp API rate limiting
+Medium
+HIGH
+Message queuing with priority tiering; non-critical messages batched; email/SMS fallback planned for Phase 2
+Field worker adoption failure
+Medium
+CRITICAL
+Mobile-first UX; minimal form fields; offline capability; WhatsApp-based onboarding tutorial; incentive tracking
+GeoJSON boundary inaccuracies
+Low
+MEDIUM
+Pre-validation against ECI booth list; versioned GeoJSON archive; analyst manual override capability
+NLP accuracy on Telugu content
+Medium
+MEDIUM
+Bilingual model with confidence scoring; low-confidence articles flagged for analyst review; human override
+Database corruption
+Low
+CRITICAL
+Daily encrypted backups; point-in-time recovery enabled; monthly restore drill; offsite backup copy
+Security breach / data exfiltration
+Low
+CRITICAL
+Defense-in-depth architecture; quarterly penetration test; bug bounty for internal team; incident response playbook
+Voter data privacy violation
+Low
+CRITICAL
+PII encryption at rest; access logging; data retention policy; deletion-on-request workflow
+Celery worker crash during brief generation
+Medium
+HIGH
+Task acks_late=True (requeue on crash); duplicate brief prevention via UNIQUE constraint on brief_date; manual re-trigger
+Campaign team disputes / insider threat
+Low
+HIGH
+Role-based data isolation; audit logging all data writes; no bulk export without Campaign Manager approval
+Internet connectivity for field workers
+HIGH
+MEDIUM
+PWA offline mode; report draft persistence; sync queue on reconnection; SMS escalation fallback
+Opposition accessing platform
+Low
+CRITICAL
+Access logging with IP tracking; MFA for senior roles; no public registration; invite-only onboarding
+29. Ethical Guardrails
+NETA AI is a political technology platform. Ethical commitments are 
+non-negotiable, hardcoded, and cannot be disabled by any user role including Super Admin
+.
+29.1 Information Integrity
+No disinformation generation
+: The AI systems do not generate false or fabricated claims about any candidate, party, or community. All AI-synthesized content is explicitly labeled as AI-generated.
+Factual grounding only
+: All factual claims in AI-generated briefs and alerts must be sourced to ingested data (field reports, news articles, ECI data). Unsourced claims are not generated.
+Sentiment neutrality in reporting
+: Sentiment analysis is applied as a measurement tool, not as a judgment. Negative sentiment flagging is for campaign awareness, not for generating attack content.
+29.2 Community & Voter Protection
+No communal targeting
+: The platform will not generate content, analysis, or recommendations that target voters by religion, caste, or ethnicity in a discriminatory manner.
+No voter suppression
+: The system will not generate content, alerts, or recommendations designed to discourage any demographic from voting.
+No unauthorized voter data sharing
+: Voter roll data ingested into the platform is used exclusively for internal campaign coordination. It cannot be exported, shared externally, or used for commercial purposes.
+29.3 Election Commission Compliance
+MCC compliance module
+ (Phase 2): A Model Code of Conduct check is planned for all AI-generated public-facing content. Until implemented, all AI-generated content requires human review before external publication.
+No impersonation
+: The system will not generate content impersonating any real individual â€” including opposition candidates.
+Transparent AI labeling
+: All AI-generated documents (briefs, alerts, recommendations) are labeled "AI-Generated â€” Requires Human Review" in the UI.
+29.4 Data Governance
+Data deletion on request
+: All personally identifiable voter data and worker data can be purged on campaign manager request, consistent with applicable data protection obligations.
+Retention limits
+: Voter contact data is retained for 180 days post-election. Field reports and audit logs are retained for 3 years for accountability purposes.
+Purpose limitation
+: Data collected for campaign operations is not repurposed for commercial use, research, or future campaign targeting without explicit re-consent from data subjects.
+30. Future Roadmap
+Phase 2 â€” Q3 2026: Ground Expansion
+Feature
+Description
+Priority
+Native Android App
+React Native app for field workers with push notifications, background sync, and offline-first architecture
+HIGH
+WhatsApp Automation
+Template-based voter outreach sequences with opt-in management, delivery analytics, and response capture
+HIGH
+Volunteer Gamification
+Points, leaderboards, achievement badges, and performance tiers for field workers â€” drives report quality and adoption
+MEDIUM
+Multi-Constituency Console
+Party leadership dashboard aggregating data across multiple assembly constituencies
+HIGH
+Bayesian Win Probability
+Replace heuristic model with Bayesian updating model that learns from campaign data in real time
+MEDIUM
+Social Media Monitoring
+Twitter/X and Facebook public post monitoring for constituency-relevant political discourse
+MEDIUM
+Phase 3 â€” Q4 2026 / Pre-Election Sprint
+Feature
+Description
+Priority
+IVR Voice Ingestion
+Field workers call an IVR number and dictate reports; speech-to-text pipeline transcribes and categorizes
+HIGH
+Predictive Forecasting Engine
+ML model trained on historical Telangana election data + live campaign signals for booth-level vote share predictions
+HIGH
+AI Speech Analysis
+Upload candidate rally video â†’ receive narrative analysis, audience sentiment score, talking point effectiveness
+MEDIUM
+MCC Compliance Checker
+Real-time content check against Model Code of Conduct guidelines before any external communication
+HIGH
+Debate Preparation Module
+Structured opposition research dossier, issue position tracker, and Q&A preparation tool
+MEDIUM
+Election Day War Room Mode
+Simplified, high-priority dashboard for polling day â€” real-time booth activity, turnout tracking, agent alerts
+CRITICAL
+Phase 4 â€” Multi-State Scale
+Feature
+Description
+Priority
+Multi-State Deployment Framework
+Parameterized constituency configuration for rapid onboarding across any Indian state
+HIGH
+National Intelligence Hub
+Aggregate dashboards for national campaigns spanning 50+ constituencies
+MEDIUM
+Campaign Benchmarking
+Compare campaign performance metrics against historical baselines and peer constituencies
+MEDIUM
+Post-Election Analysis
+Win/loss attribution, which campaign actions correlated with outcome changes, learnings report
+HIGH
+Data Marketplace (Ethical)
+Anonymized, consent-based constituency insights for academic research and policy planning
+LOW
+31. Production Readiness
+31.1 Infrastructure Requirements
+Resource
+Minimum (1 Constituency)
+Recommended
+VPS / Server
+4 vCPU, 8GB RAM, 100GB SSD
+8 vCPU, 16GB RAM, 200GB SSD
+Operating System
+Ubuntu 22.04 LTS
+Ubuntu 24.04 LTS
+Domain & SSL
+Custom domain, Let's Encrypt
+Custom domain, Let's Encrypt (auto-renewing)
+Backup Storage
+50GB encrypted remote storage
+200GB S3-compatible bucket
+Network
+100Mbps uplink
+1Gbps uplink
+PostgreSQL Data
+20GB allocated
+50GB allocated
+Redis Memory
+2GB
+4GB
+31.2 Pre-Production Validation
+Before any production deployment, the following validations must be completed and signed off:
+Data Validation
+â˜
+ 
+ECI booth data loaded and verified against official booth count
+â˜
+ 
+GeoJSON constituency boundary validated against known boundary
+â˜
+ 
+Census demographic data cross-checked with available official sources
+â˜
+ 
+At least 3 RSS feeds verified to be ingesting successfully
+â˜
+ 
+WhatsApp template(s) approved by Meta
+Security Validation
+â˜
+ 
+Penetration test completed (at minimum, OWASP Top 10 coverage)
+â˜
+ 
+SSL certificate installed and auto-renewal tested
+â˜
+ 
+All default passwords changed; no hardcoded credentials in codebase
+â˜
+ 
+MFA tested for Super Admin and Campaign Manager accounts
+â˜
+ 
+CORS whitelist verified for production domain only
+â˜
+ 
+Rate limiting tested under simulated load
+â˜
+ 
+File upload malicious content test (EICAR test file rejection)
+Operational Validation
+â˜
+ 
+End-to-end field report submission tested from mobile device
+â˜
+ 
+Escalation workflow tested from submission to WhatsApp delivery
+â˜
+ 
+Morning brief generation manually triggered and verified
+â˜
+ 
+SSE connection stability tested for 8+ hours continuous connection
+â˜
+ 
+Celery Beat schedule verified for all cron tasks
+â˜
+ 
+Backup and restore procedure tested end-to-end
+â˜
+ 
+System health alert tested (manually kill a service; verify alert)
+User Acceptance
+â˜
+ 
+Campaign Manager sign-off on all dashboard views
+â˜
+ 
+Ground Commander walkthrough on mobile report form
+â˜
+ 
+Field Worker training session completed (minimum 10 workers)
+â˜
+ 
+Data Analyst verified on constituency intelligence and export functions
+â˜
+ 
+Super Admin trained on Admin Dashboard and user management
+32. Launch Checklist
+T-14 DAYS (2 weeks before campaign start)
+    â–¡ Infrastructure provisioned and verified
+    â–¡ All Docker services deployed and health-checked
+    â–¡ Domain and SSL live
+    â–¡ All user accounts created with correct roles
+    â–¡ RSS feeds configured and ingesting
+    â–¡ WhatsApp templates approved and tested
+    â–¡ ECI booth data loaded (all 315+ booths)
+    â–¡ GeoJSON layers loaded and displaying correctly
+    â–¡ Census demographic data loaded
+T-7 DAYS (1 week before campaign start)
+    â–¡ Voter roll upload completed and validated
+    â–¡ Zone structure configured and commanders assigned
+    â–¡ Booth volunteer assignments entered
+    â–¡ Field worker accounts created and training completed
+    â–¡ Ground Commander mobile access tested
+    â–¡ Full escalation workflow drill completed
+    â–¡ Morning brief generated and reviewed (dry run)
+    â–¡ Backup procedure executed and verified
+T-3 DAYS
+    â–¡ Win probability baseline set
+    â–¡ Alert thresholds configured and reviewed with Campaign Manager
+    â–¡ WhatsApp contact numbers for all key personnel verified
+    â–¡ Emergency contact chain documented and distributed
+    â–¡ Incident response plan reviewed with IT team
+T-1 DAY (day before campaign launch)
+    â–¡ System performance test under simulated concurrent load
+    â–¡ All module walkthroughs with campaign team
+    â–¡ On-call rotation confirmed (who to call if system goes down)
+    â–¡ Monitoring dashboards reviewed (Grafana, Sentry, Flower)
+    â–¡ Backup created (full database snapshot)
+LAUNCH DAY
+    â–¡ All Celery workers running and verified
+    â–¡ RSS ingestion confirmed active
+    â–¡ SSE stream tested from Command Centre
+    â–¡ Field workers confirmed active on mobile
+    â–¡ Morning brief verified delivered
+    â–¡ Monitoring dashboards live on war room screen
+    â–¡ NETA AI is live â€” election operations begin
+33. Conclusion
+Indian elections are decided in the space between knowing and acting. The campaign that knows what is happening in Booth 147 at 10:00 AM and responds by 10:30 AM beats the campaign that finds out at 2:00 PM. The campaign that identifies a rising negative narrative in Kondapur at 8:00 AM and counter-deploys resources by 9:00 AM beats the campaign that spends the afternoon reacting to what was already decided by lunchtime.
+NETA AI is built on this fundamental truth.
+Every architectural decision â€” SSE for sub-60-second field report visibility, Redis for millisecond KPI retrieval, Celery for background pipeline resilience, PostGIS for spatial booth intelligence â€” traces back to a single operational imperative: 
+close the gap between event and action
+.
+For Serilingampally AC-52, a constituency of 300,000+ voters across 315+ booths in some of Hyderabad's most dynamic urban zones, this gap is the election. The constituency's complexity â€” IT professionals, migrant workers, traders, legacy communities, overlapping caste arithmetic, rapid demographic change â€” cannot be managed by instinct, experience, and WhatsApp groups alone. It requires a system.
+NETA AI is that system.
+It is not a dashboarding tool. It is not a reporting platform. It is operational war room infrastructure â€” the difference between a campaign that is watching the election happen and a campaign that is driving it.
+When the campaign manager opens NETA AI at 6:00 AM, they have already won the first hour of the day. The brief is ready. The risks are ranked. The opportunity zones are identified. The overnight escalations are resolved. And the system has been watching all night.
+This is the NETA AI advantage. This is how elections are won.
+NETA AI PRD v2.0 â€” Production Release Candidate
+Â 
+Classification: STRICTLY CONFIDENTIAL â€” WAR ROOM RESTRICTED
+Â 
+Serilingampally (AC-52), Telangana, India
+Â 
+All content proprietary. Unauthorized distribution prohibited.

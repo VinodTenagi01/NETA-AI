@@ -1,0 +1,69 @@
+{
+  "status": "COMPLETE",
+  "checks": {
+    "orm_models": {
+      "count": 15,
+      "tables": [
+        "Alert",
+        "AuditLog",
+        "Booth",
+        "BoothVolunteer",
+        "BoothWardMapping",
+        "CampaignZone",
+        "Constituency",
+        "ConstituencyDemographics",
+        "Escalation",
+        "FieldReport",
+        "IntelligenceBrief",
+        "IntelligenceScore",
+        "NewsArticle",
+        "User",
+        "Voter"
+      ]
+    },
+    "migrations": {
+      "count": 2,
+      "files": [
+        "001_initial_schema.sql",
+        "002_add_voter_fields.sql"
+      ]
+    },
+    "config": {
+      "has_database_url": true,
+      "has_asyncpg": true,
+      "has_redis": true
+    },
+    "database_setup": {
+      "create_async_engine": true,
+      "async_sessionmaker": true,
+      "get_db_dependency": true,
+      "get_db_context": true,
+      "DeclarativeBase": true
+    },
+    "schema_consistency": {
+      "migration_tables": 15,
+      "orm_models": 15,
+      "match": true
+    },
+    "features": {
+      "PostGIS support (Geography)": true,
+      "UUID primary keys": true,
+      "TIMESTAMPTZ columns": true,
+      "JSONB fields": true,
+      "Check constraints": true,
+      "Foreign keys": true,
+      "Indexes": true,
+      "Relationships": true,
+      "Audit trail (AuditLog)": true,
+      "Database security (REVOKE)": true
+    },
+    "integrity_check": {
+      "seed_files": true,
+      "migrations": true,
+      "ocr_cache": true,
+      "imports": true
+    }
+  },
+  "warnings": [],
+  "pending": []
+}

@@ -14,6 +14,7 @@ from app.geojson_mapping.router import router as geo_router
 from app.ground_operations.router import router as ground_router
 from app.security_auth.router import router as auth_router
 from app.news_intelligence.router import router as news_router
+from app.booth_management.router import router as booth_router
 
 
 @asynccontextmanager
@@ -51,6 +52,7 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(geo_router)
 app.include_router(ground_router)
 app.include_router(news_router)
+app.include_router(booth_router)
 
 
 @app.get("/api/health", tags=["System"])

@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: neta_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-netaai_prod}
+      POSTGRES_USER: ${POSTGRES_USER:-netaai_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-netaai_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./app/database_design/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-netaai_app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: neta_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_password} --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_password}", "ping"]
+      interval: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: neta_api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-netaai_app}:${POSTGRES_PASSWORD:-netaai_password}@postgres:5432/${POSTGRES_DB:-netaai_prod}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-["http://localhost:5173"]}
+      DEBUG: ${DEBUG:-false}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:

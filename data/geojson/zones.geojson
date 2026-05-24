@@ -1,0 +1,206 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "ac_number": "52",
+    "ac_name": "Serilingampally",
+    "layer": "campaign_zones",
+    "total_zones": 7,
+    "data_source": "CAMPAIGN_ZONE_DEFINITION_PRD",
+    "note": "Zone polygons derived from PRD Section 11.3 — replace with precise ward-aligned boundaries from GHMC GIS data"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_code": "Z-01",
+        "zone_name": "Kondapur Zone",
+        "key_areas": "Kondapur, Ayyappa Society, Laxmi Cyber City",
+        "approx_booth_count": 55,
+        "approx_voter_count": 52000,
+        "color": "#2563eb"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.340, 17.455],
+            [78.360, 17.455],
+            [78.375, 17.458],
+            [78.380, 17.468],
+            [78.375, 17.478],
+            [78.362, 17.482],
+            [78.348, 17.480],
+            [78.338, 17.473],
+            [78.335, 17.463],
+            [78.340, 17.455]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_code": "Z-02",
+        "zone_name": "Madhapur Zone",
+        "key_areas": "Madhapur, Jubilee Hills Road, Raidurg",
+        "approx_booth_count": 48,
+        "approx_voter_count": 44000,
+        "color": "#7c3aed"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.370, 17.438],
+            [78.395, 17.438],
+            [78.408, 17.445],
+            [78.408, 17.455],
+            [78.398, 17.460],
+            [78.385, 17.458],
+            [78.375, 17.455],
+            [78.368, 17.448],
+            [78.370, 17.438]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_code": "Z-03",
+        "zone_name": "Gachibowli Zone",
+        "key_areas": "Gachibowli, Financial District, ISB Road",
+        "approx_booth_count": 42,
+        "approx_voter_count": 39000,
+        "color": "#059669"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.330, 17.428],
+            [78.355, 17.425],
+            [78.368, 17.428],
+            [78.372, 17.438],
+            [78.368, 17.448],
+            [78.355, 17.452],
+            [78.340, 17.452],
+            [78.330, 17.445],
+            [78.326, 17.435],
+            [78.330, 17.428]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_code": "Z-04",
+        "zone_name": "HITEC City Zone",
+        "key_areas": "HITEC City, Whitefields, Kothaguda",
+        "approx_booth_count": 38,
+        "approx_voter_count": 36000,
+        "color": "#d97706"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.358, 17.445],
+            [78.375, 17.445],
+            [78.380, 17.452],
+            [78.378, 17.460],
+            [78.365, 17.462],
+            [78.352, 17.458],
+            [78.348, 17.450],
+            [78.354, 17.444],
+            [78.358, 17.445]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_code": "Z-05",
+        "zone_name": "Hafeezpet Zone",
+        "key_areas": "Hafeezpet, Miyapur Link Road, RC Puram",
+        "approx_booth_count": 52,
+        "approx_voter_count": 49000,
+        "color": "#dc2626"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.300, 17.475],
+            [78.320, 17.472],
+            [78.335, 17.475],
+            [78.340, 17.485],
+            [78.335, 17.495],
+            [78.320, 17.500],
+            [78.305, 17.498],
+            [78.296, 17.490],
+            [78.296, 17.480],
+            [78.300, 17.475]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_code": "Z-06",
+        "zone_name": "Chandanagar Zone",
+        "key_areas": "Chandanagar, Lingampally, Chanda Nagar OFB",
+        "approx_booth_count": 45,
+        "approx_voter_count": 43000,
+        "color": "#0891b2"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.278, 17.488],
+            [78.295, 17.485],
+            [78.308, 17.490],
+            [78.310, 17.500],
+            [78.305, 17.510],
+            [78.292, 17.514],
+            [78.280, 17.510],
+            [78.274, 17.500],
+            [78.274, 17.490],
+            [78.278, 17.488]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_code": "Z-07",
+        "zone_name": "Nallagandla Zone",
+        "key_areas": "Nallagandla, Tellapur, Kollur",
+        "approx_booth_count": 35,
+        "approx_voter_count": 33000,
+        "color": "#be185d"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.280, 17.448],
+            [78.298, 17.445],
+            [78.312, 17.448],
+            [78.318, 17.458],
+            [78.314, 17.468],
+            [78.300, 17.472],
+            [78.285, 17.468],
+            [78.278, 17.458],
+            [78.280, 17.448]
+          ]
+        ]
+      }
+    }
+  ]
+}

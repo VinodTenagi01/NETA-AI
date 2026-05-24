@@ -1,0 +1,70 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "ac_number": "52",
+    "ac_name": "Serilingampally",
+    "state": "Telangana",
+    "district": "Rangareddy",
+    "total_booths": 315,
+    "total_voters": 296000,
+    "data_source": "ECI_AC52_BOUNDARY",
+    "coordinate_system": "WGS84",
+    "note": "Boundary polygon — replace with official ECI shapefile converted via ogr2ogr when provided"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ac-52",
+        "name": "Serilingampally",
+        "ac_number": "52",
+        "state": "Telangana",
+        "district": "Rangareddy",
+        "total_booths": 315,
+        "total_voters": 296000,
+        "layer": "constituency_boundary"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.280, 17.430],
+            [78.295, 17.425],
+            [78.310, 17.420],
+            [78.325, 17.418],
+            [78.340, 17.420],
+            [78.355, 17.422],
+            [78.368, 17.428],
+            [78.378, 17.432],
+            [78.390, 17.435],
+            [78.400, 17.438],
+            [78.408, 17.445],
+            [78.410, 17.452],
+            [78.408, 17.460],
+            [78.405, 17.468],
+            [78.402, 17.475],
+            [78.400, 17.482],
+            [78.395, 17.490],
+            [78.388, 17.496],
+            [78.380, 17.502],
+            [78.370, 17.508],
+            [78.358, 17.512],
+            [78.345, 17.515],
+            [78.330, 17.516],
+            [78.315, 17.514],
+            [78.302, 17.510],
+            [78.292, 17.504],
+            [78.283, 17.497],
+            [78.277, 17.488],
+            [78.273, 17.478],
+            [78.272, 17.468],
+            [78.273, 17.458],
+            [78.275, 17.448],
+            [78.278, 17.440],
+            [78.280, 17.430]
+          ]
+        ]
+      }
+    }
+  ]
+}
