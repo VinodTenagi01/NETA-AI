@@ -72,7 +72,9 @@
       "Bash(xargs grep -l \"celery\\\\|asyncio\\\\|background\\\\|task\")",
       "Bash(Get-ChildItem -Path \"D:\\\\NETA.AI\" -Recurse -Directory -Depth 2)",
       "Bash(xargs cat)",
-      "Bash(xargs ls -lh)"
+      "Bash(xargs ls -lh)",
+      "Bash(psql -U postgres -h 127.0.0.1 -c \"SELECT pid, usename, application_name, state, query_start FROM pg_stat_activity;\")",
+      "Bash(where psql *)"
     ]
   }
 }

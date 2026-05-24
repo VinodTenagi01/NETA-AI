@@ -116,7 +116,10 @@ async def main(args: argparse.Namespace) -> int:
             await _run_one(pdf, args, session)
     finally:
         if session is not None:
-            await session.close()
+            try:
+                await session.close()
+            except Exception as e:
+                print(f"WARNING: Error closing session: {e}")
 
     print("-" * 80)
     print("Done.")
