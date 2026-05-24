@@ -67,7 +67,9 @@
       "Bash(git push *)",
       "Bash(powershell *)",
       "Bash(xargs wc -l)",
-      "Bash(xargs grep -l \"booth\")"
+      "Bash(xargs grep -l \"booth\")",
+      "Bash(Select-String -Pattern \"session|whatsapp|integration\" -List)",
+      "Bash(xargs grep -l \"celery\\\\|asyncio\\\\|background\\\\|task\")"
     ]
   }
 }
