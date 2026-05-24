@@ -16,6 +16,7 @@ from app.security_auth.router import router as auth_router
 from app.news_intelligence.router import router as news_router
 from app.booth_management.router import router as booth_router
 from app.prediction_sentiment.router import router as prediction_router
+from app.opposition_intelligence.router import router as opposition_router
 
 
 @asynccontextmanager
@@ -55,6 +56,7 @@ app.include_router(ground_router)
 app.include_router(news_router)
 app.include_router(booth_router)
 app.include_router(prediction_router)
+app.include_router(opposition_router)
 
 
 @app.get("/api/health", tags=["System"])
