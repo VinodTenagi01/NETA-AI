@@ -34,8 +34,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     libpq5 \
-    libgdal3 \
-    libproj25 \
+    gdal-bin \
+    libgdal-dev \
+    proj-bin \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
