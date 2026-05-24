@@ -4,24 +4,26 @@ Celery Background Tasks
 Asynchronous tasks for alert generation, WhatsApp message delivery, and delivery status monitoring.
 """
 
+import asyncio
 import logging
 from datetime import datetime, timedelta
 from uuid import uuid4, UUID
 
 from celery import shared_task, Task
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
+from app.database_design.database import AsyncSessionFactory
 from app.whatsapp_integration.meta_client import MetaClient
 from app.whatsapp_integration.message_formatter import MessageFormatter
 from app.whatsapp_integration.alert_dispatcher import AlertDispatcher
 
 logger = logging.getLogger(__name__)
 
-# Initialize async database session
-engine = create_async_engine(settings.DATABASE_URL, echo=False)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+async def get_db_session():
+    """Get database session for Celery tasks. Use with asyncio.run() in sync context."""
+    async with AsyncSessionFactory() as session:
+        yield session
 
 
 class CallbackTask(Task):

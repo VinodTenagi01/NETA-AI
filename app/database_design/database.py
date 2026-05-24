@@ -16,9 +16,10 @@ from app.config import settings
 
 engine = create_async_engine(
     settings.DATABASE_URL,
+    pool_size=3,
+    max_overflow=5,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    pool_recycle=300,
     echo=settings.DEBUG,
 )
 
@@ -47,6 +48,17 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 @asynccontextmanager
 async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionFactory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+
+async def get_session_for_task() -> AsyncGenerator[AsyncSession, None]:
+    """Get database session for Celery/background tasks with proper cleanup."""
     async with AsyncSessionFactory() as session:
         try:
             yield session

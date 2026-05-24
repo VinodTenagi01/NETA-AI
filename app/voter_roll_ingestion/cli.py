@@ -115,7 +115,7 @@ async def main(args: argparse.Namespace) -> int:
         for pdf in pdfs:
             await _run_one(pdf, args, session)
     finally:
-        if session:
+        if session is not None:
             await session.close()
 
     print("-" * 80)

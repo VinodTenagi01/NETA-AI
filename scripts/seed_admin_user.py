@@ -27,8 +27,15 @@ from app.security_auth.utils import hash_password
 
 async def seed_admin_user(email: str = "admin@netaai.in", password: str = "Admin123!Secure"):
     """Create a test admin user."""
-    # Create async engine
-    engine = create_async_engine(settings.DATABASE_URL, echo=False)
+    # Create async engine with optimized connection pool
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        pool_size=3,
+        max_overflow=5,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        echo=False,
+    )
 
     # Create session factory
     AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
