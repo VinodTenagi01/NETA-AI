@@ -119,7 +119,12 @@
       "Bash(/c/Program Files/Docker/Docker.staging/resources/bin/docker.exe ps *)",
       "PowerShell(Start-Process -FilePath \"C:\\\\Program Files\\\\Docker\\\\Docker.staging\\\\Docker Desktop.exe\" -WindowStyle Hidden)",
       "PowerShell(& \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\" 2>&1)",
-      "PowerShell(Start-Service *)"
+      "PowerShell(Start-Service *)",
+      "Bash(curl -s http://localhost:8000/api/docs)",
+      "Bash(curl -s http://localhost:8000/api/openapi.json)",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@example.com\",\"password\":\"TestAdmin123!\"}')",
+      "Bash(curl -s http://localhost:8000/api/v1/news/articles -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAxIiwiZW1haWwiOiJhZG1pbkB0ZXN0LmxvY2FsIiwicm9sZSI6InN1cGVyX2FkbWluIiwiZXhwIjoxNzc5NzgwMDU5LCJpYXQiOjE3Nzk3NzkxNTksInR5cGUiOiJhY2Nlc3MifQ.tuzKl-mJaXkg1tAGJj5ajWA3v6xxDN5S2vcfi-Qkiqo')",
+      "Bash(curl -s http://localhost:8000/api/v1/news/articles -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNDM0MGI1MjgtODBhZi00N2IyLWJmYmUtYzAxOWU2ZDIzODJiIiwiZW1haWwiOiJuZXdzYWRtaW5AdGVzdC5sb2NhbCIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImV4cCI6MTc3OTc4MDEzOSwiaWF0IjoxNzc5Nzc5MjM5LCJ0eXBlIjoiYWNjZXNzIn0.C1xfF4B9jgIQIvdCF0EqQtTEAQZmOigX-PfHe8MVq8E')"
     ]
   }
 }
