@@ -247,7 +247,7 @@ class TestGetCurrentUser:
         """Test getting current user fails without token."""
         response = await pg_test_client.get("/api/auth/me")
 
-        assert response.status_code == 401  # Unauthorized (no credentials)
+        assert response.status_code == 403  # Forbidden (no credentials — HTTPBearer default)
 
     @pytest.mark.asyncio
     async def test_get_current_user_invalid_token(self, pg_test_client: AsyncClient):
@@ -424,4 +424,4 @@ class TestLogout:
         """Test logout without token fails."""
         response = await pg_test_client.post("/api/auth/logout")
 
-        assert response.status_code == 401
+        assert response.status_code == 403
