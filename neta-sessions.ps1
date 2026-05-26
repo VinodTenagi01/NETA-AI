@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # neta-sessions.ps1
 # Tailored development session runner parsed and generated from PRD requirements.
 # Owner: Srinivas / Fidelitus Corp
@@ -33,7 +33,7 @@ $sessions = @{
     "01-database-design" = @{
         model  = $HAIKU
         task   = "TASK-001"
-        label  = "Session 1 · Database Schema & Alembic Setup"
+        label  = "Session 1 � Database Schema & Alembic Setup"
         prompt = @'
 Stack: Python 3.11, PostgreSQL (PostGIS), SQLAlchemy 2.0 (async), asyncpg, Alembic, Docker
 Task file: tasks/TASK-001-database-design.md
@@ -50,7 +50,7 @@ PDCA: present plan before touching any file.
     "02-security-auth" = @{
         model  = $SONNET
         task   = "TASK-002"
-        label  = "Session 2 · Security Architecture & JWT Authentication"
+        label  = "Session 2 � Security Architecture & JWT Authentication"
         prompt = @'
 Stack: Python 3.11, FastAPI, Redis, bcrypt
 Task file: tasks/TASK-002-security-auth.md
@@ -145,7 +145,7 @@ PDCA: present plan before touching any file.
     "03-geojson-mapping" = @{
         model  = $SONNET
         task   = "TASK-003"
-        label  = "Session 3 · GeoJSON Mapping System & Constituency Views"
+        label  = "Session 3 � GeoJSON Mapping System & Constituency Views"
         prompt = @'
 Stack: React 18, Leaflet.js, PostGIS, FastAPI
 Task file: tasks/TASK-003-geojson-mapping.md
@@ -161,7 +161,7 @@ Format
 Storage
 Constituency Boundary
 AC-52 outer boundary
-ECI shapefile → GeoJSON
+ECI shapefile ? GeoJSON
 Polygon
 Static file + DB
 Ward Boundaries
@@ -190,15 +190,15 @@ OpenStreetMap
 LineString
 Vector tiles
 22.2 Map Layer Architecture
-Leaflet.js Map Container    │    ├── Base Layer: OpenStreetMap tiles (CDN)    │    ├── Layer Group: Constituency Layers (toggleable)    │   ├── Constituency boundary (GeoJSON — always visible)    │   ├── Ward boundaries (GeoJSON — toggle)    │   └── Zone boundaries (GeoJSON — toggle)    │    ├── Layer Group: Data Layers (toggleable, mutually exclusive)    │   ├── Booth Health Choropleth    │   ├── Booth Risk Choropleth    │   ├── Contact Rate Choropleth    │   ├── Voter Density Choropleth    │   └── Sentiment Heatmap    │    ├── Marker Layer: Booth Markers (always visible)    │   ├── Color-coded by selected data layer    │   └── Click → Booth detail popup    │    ├── Marker Layer: Field Worker Positions (toggleable)    │   └── Last-known GPS from most recent report    │    └── Marker Layer: Opposition Activity (toggleable, CM+ only)        └── Field-reported opposition events
+Leaflet.js Map Container    �    +-- Base Layer: OpenStreetMap tiles (CDN)    �    +-- Layer Group: Constituency Layers (toggleable)    �   +-- Constituency boundary (GeoJSON � always visible)    �   +-- Ward boundaries (GeoJSON � toggle)    �   +-- Zone boundaries (GeoJSON � toggle)    �    +-- Layer Group: Data Layers (toggleable, mutually exclusive)    �   +-- Booth Health Choropleth    �   +-- Booth Risk Choropleth    �   +-- Contact Rate Choropleth    �   +-- Voter Density Choropleth    �   +-- Sentiment Heatmap    �    +-- Marker Layer: Booth Markers (always visible)    �   +-- Color-coded by selected data layer    �   +-- Click ? Booth detail popup    �    +-- Marker Layer: Field Worker Positions (toggleable)    �   +-- Last-known GPS from most recent report    �    +-- Marker Layer: Opposition Activity (toggleable, CM+ only)        +-- Field-reported opposition events
 22.3 Booth Popup Data Card
 On clicking any booth marker:
-┌─────────────────────────────────────┐│ 📍 BOOTH 147 — Kondapur PS         ││ Zone: Z-01 Kondapur                 │├─────────────────────────────────────┤│ Total Voters: 1,247                 ││ Contacted: 623 (49.9%)              ││ Health Score: 72/100 🟡             ││ Risk Score: 38/100 🟡               ││ Volunteers: 3 assigned              │├─────────────────────────────────────┤│ Last Report: 2h ago                 ││ Open Escalations: 0                 ││ Mood: POSITIVE                      │├─────────────────────────────────────┤│ Commander: Ramesh Kumar             ││ [View Full Booth] [Add Report]      │└─────────────────────────────────────┘
++-------------------------------------+� ?? BOOTH 147 � Kondapur PS         �� Zone: Z-01 Kondapur                 �+-------------------------------------�� Total Voters: 1,247                 �� Contacted: 623 (49.9%)              �� Health Score: 72/100 ??             �� Risk Score: 38/100 ??               �� Volunteers: 3 assigned              �+-------------------------------------�� Last Report: 2h ago                 �� Open Escalations: 0                 �� Mood: POSITIVE                      �+-------------------------------------�� Commander: Ramesh Kumar             �� [View Full Booth] [Add Report]      �+-------------------------------------+
 22.4 GeoJSON Performance Optimization
-Simplification: Booth catchment polygons simplified to 0.001° precision using shapely.simplify() before storage — reduces file size by ~60% with negligible visual quality loss
+Simplification: Booth catchment polygons simplified to 0.001� precision using shapely.simplify() before storage � reduces file size by ~60% with negligible visual quality loss
 Lazy loading: Ward and zone boundary GeoJSON loaded on-demand when those layers are toggled, not on initial map load
 Tile caching: Nginx caches OSM base tiles with 1-hour TTL to reduce external tile server dependency
-Clustering: At zoom levels < 12, booth markers are clustered using Leaflet.markercluster; full markers visible at zoom ≥ 13
+Clustering: At zoom levels < 12, booth markers are clustered using Leaflet.markercluster; full markers visible at zoom = 13
 
 11.1 Purpose & Scope
 The Constituency Intelligence module is the geo-demographic backbone of NETA AI. It provides spatial, statistical, and historical data visualization for Serilingampally AC-52, integrated with live campaign data to enable targeted, evidence-based deployment decisions.
@@ -307,7 +307,7 @@ Demographic Overlay Map
 Interactive Leaflet.js choropleth with selectable overlay:
 Voter density (voters per sq km)
 SC/ST concentration (% of booth catchment)
-Youth voter proportion (18–35 age estimate)
+Youth voter proportion (18�35 age estimate)
 Literacy rate
 Gender ratio (female voters %)
 Each overlay uses a 5-step color scale normalized to constituency min/max values. Map layer toggles are accessible in the sidebar panel.
@@ -329,45 +329,45 @@ Z-05
 Z-06
 Z-07
 Contact Rate %
-—
-—
-—
-—
-—
-—
-—
+�
+�
+�
+�
+�
+�
+�
 Avg Booth Health
-—
-—
-—
-—
-—
-—
-—
+�
+�
+�
+�
+�
+�
+�
 Active Workers
-—
-—
-—
-—
-—
-—
-—
+�
+�
+�
+�
+�
+�
+�
 Open Escalations
-—
-—
-—
-—
-—
-—
-—
+�
+�
+�
+�
+�
+�
+�
 News Sentiment
-—
-—
-—
-—
-—
-—
-—
+�
+�
+�
+�
+�
+�
+�
 (Values populate live from database during operation.)
 
 PDCA: present plan before touching any file.
@@ -377,7 +377,7 @@ PDCA: present plan before touching any file.
     "04-ground-operations" = @{
         model  = $SONNET
         task   = "TASK-004"
-        label  = "Session 4 · Ground Pulse & Escalations Workflow"
+        label  = "Session 4 � Ground Pulse & Escalations Workflow"
         prompt = @'
 Stack: Python 3.11, FastAPI, React 18 (PWA, IndexedDB)
 Task file: tasks/TASK-004-ground-operations.md
@@ -391,12 +391,12 @@ user_id, name, phone, zone_id (FK), assigned_booths (ARRAY)
 is_active (online/offline status)
 last_checkin_at (UTC timestamp)
 reports_today (count, cached in Redis)
-productivity_score (reports submitted × severity weighting, rolling 7-day)
+productivity_score (reports submitted � severity weighting, rolling 7-day)
 Worker positions are updated via GPS-enabled check-in on report submission (not continuous GPS tracking, to avoid battery drain and privacy concerns on personal devices).
 Attendance Management
 Daily attendance is recorded through a booth check-in workflow:
-Worker opens mobile app → taps "Check In to Booth"
-App captures GPS coordinate (optional — can be disabled for areas with poor signal)
+Worker opens mobile app ? taps "Check In to Booth"
+App captures GPS coordinate (optional � can be disabled for areas with poor signal)
 Worker selects booth from their assigned list or searches by number
 Check-in recorded in worker_attendance table with timestamp
 Zone dashboards show real-time attendance aggregates: workers expected vs. present, coverage gaps by booth.
@@ -419,7 +419,7 @@ Text (max 500 chars)
 Yes
 Free text; used for NLP processing
 severity
-INT (1–5)
+INT (1�5)
 Yes
 1=Routine, 3=Noteworthy, 5=Emergency
 voter_sentiment
@@ -443,35 +443,35 @@ Float
 Optional
 Device-captured on submission
 13.3 Escalation Workflow
-Severity 4–5 reports automatically trigger an escalation record. The full escalation lifecycle:
-Field Report (Severity 4 or 5)         │         ▼   Escalation Record Created   ├── status: NEW   ├── sla_deadline: NOW + 30min (severity 5) / NOW + 2h (severity 4)   ├── assigned_to: zone Ground Commander (auto-assigned by zone_id)   └── notification: WhatsApp → Ground Commander         │         ▼   Ground Commander Acknowledges   ├── status: IN_PROGRESS   ├── acknowledged_at: timestamp   └── SSE push: Command Centre escalation count updates         │         ▼   SLA Monitor (every 5 min check)   ├── If SLA_DEADLINE approaching (15 min): WhatsApp reminder   └── If SLA_DEADLINE breached: CRITICAL alert → Campaign Manager         │         ▼   Resolution   ├── status: RESOLVED   ├── resolved_at: timestamp   ├── resolution_notes: required (min 50 characters)   └── SSE push: escalation queue count decrements
+Severity 4�5 reports automatically trigger an escalation record. The full escalation lifecycle:
+Field Report (Severity 4 or 5)         �         ?   Escalation Record Created   +-- status: NEW   +-- sla_deadline: NOW + 30min (severity 5) / NOW + 2h (severity 4)   +-- assigned_to: zone Ground Commander (auto-assigned by zone_id)   +-- notification: WhatsApp ? Ground Commander         �         ?   Ground Commander Acknowledges   +-- status: IN_PROGRESS   +-- acknowledged_at: timestamp   +-- SSE push: Command Centre escalation count updates         �         ?   SLA Monitor (every 5 min check)   +-- If SLA_DEADLINE approaching (15 min): WhatsApp reminder   +-- If SLA_DEADLINE breached: CRITICAL alert ? Campaign Manager         �         ?   Resolution   +-- status: RESOLVED   +-- resolved_at: timestamp   +-- resolution_notes: required (min 50 characters)   +-- SSE push: escalation queue count decrements
 Escalation SLA Table
 Severity
 SLA
 Assigned To
 Escalates To (if SLA breached)
-5 — Emergency
+5 � Emergency
 30 minutes
 Ground Commander
 Campaign Manager (immediate)
-4 — High
+4 � High
 2 hours
 Ground Commander
 Campaign Manager (on breach)
-3 — Medium
+3 � Medium
 8 hours
 Ground Commander
 Zone review (on breach)
-1–2 — Routine
+1�2 � Routine
 24 hours
 Ground Commander
 No escalation
 13.4 Mood Analysis
-Aggregate sentiment extracted from field reports is visualized as a Constituency Mood Map — a zone-level choropleth overlaid on the constituency map:
+Aggregate sentiment extracted from field reports is visualized as a Constituency Mood Map � a zone-level choropleth overlaid on the constituency map:
 Color: Green (positive), Amber (neutral/mixed), Red (negative)
 Time window: Rolling 24 hours (configurable: 6h, 24h, 48h, 7-day)
 Calculation: Weighted average of voter_sentiment field values, weighted by report recency
-A zone-level mood time-series chart tracks sentiment trend over the campaign period — identifying mood deterioration before it becomes an electoral problem.
+A zone-level mood time-series chart tracks sentiment trend over the campaign period � identifying mood deterioration before it becomes an electoral problem.
 
 PDCA: present plan before touching any file.
 '@
@@ -480,7 +480,7 @@ PDCA: present plan before touching any file.
     "05-news-intelligence" = @{
         model  = $SONNET
         task   = "TASK-005"
-        label  = "Session 5 · RSS Ingestion & Multilingual NLP Pipeline"
+        label  = "Session 5 � RSS Ingestion & Multilingual NLP Pipeline"
         prompt = @'
 Stack: Python 3.11, Celery, HuggingFace (MuRIL/IndicBERT), spaCy, Scikit-learn
 Task file: tasks/TASK-005-news-intelligence.md
@@ -493,15 +493,15 @@ Source
 Language
 Tier
 Topics Monitored
-The Hindu — Telangana
+The Hindu � Telangana
 English
 1
 Politics, governance, development
-NDTV — Telangana
+NDTV � Telangana
 English
 1
 Breaking news, political developments
-Deccan Chronicle — Hyderabad
+Deccan Chronicle � Hyderabad
 English
 2
 Local politics, constituency coverage
@@ -509,11 +509,11 @@ The News Minute
 English
 2
 Telangana politics, investigative
-Sakshi — Political
+Sakshi � Political
 Telugu
 1
 YSRCP/BRS/Congress coverage
-Eenadu — Political
+Eenadu � Political
 Telugu
 1
 Mainstream Telugu political news
@@ -542,20 +542,20 @@ Mixed
 3
 Hyperlocal, community, ward blogs
 12.2 NLP Processing Pipeline
-Raw RSS Article    │    ▼[Pre-processing]    ├── Language detection (Telugu / English)    ├── HTML tag stripping    ├── Normalization (Unicode, encoding)    └── Sentence tokenization    │    ▼[Sentiment Analysis]    ├── IndicBERT / MuRIL tokenization    ├── Polarity score: -1.0 (strongly negative) → +1.0 (strongly positive)    ├── Confidence score (0.0 → 1.0)    └── Political tone: PRO_INCUMBENT | NEUTRAL | ANTI_INCUMBENT    │    ▼[Entity Extraction]    ├── Candidate name(s) detection    ├── Constituency name detection    ├── Party name detection    ├── Issue tag extraction (INFRASTRUCTURE|DEVELOPMENT|SECURITY|etc.)    └── Location tagging (ward, zone, area names)    │    ▼[Impact Scoring]    ├── Base = |sentiment_polarity| × political_relevance_score    ├── Source multiplier: Tier 1 = 1.0, Tier 2 = 0.7, Tier 3 = 0.4    ├── Recency decay: e^(-0.1 × hours_since_publication)    └── Impact Score = Base × Source Multiplier × Recency Decay × 10    │    ▼[Narrative Clustering]    ├── TF-IDF vectorization of article body    ├── Cosine similarity against existing cluster centroids    ├── Assign to nearest cluster (threshold: similarity > 0.65)    └── If no match: create new cluster; alert analyst    │    ▼[Output]    ├── Write to news_articles table    ├── If impact_score ≥ 7.0: create alerts record    └── Update Redis: news_sentiment_cache, narrative_momentum_cache
+Raw RSS Article    �    ?[Pre-processing]    +-- Language detection (Telugu / English)    +-- HTML tag stripping    +-- Normalization (Unicode, encoding)    +-- Sentence tokenization    �    ?[Sentiment Analysis]    +-- IndicBERT / MuRIL tokenization    +-- Polarity score: -1.0 (strongly negative) ? +1.0 (strongly positive)    +-- Confidence score (0.0 ? 1.0)    +-- Political tone: PRO_INCUMBENT | NEUTRAL | ANTI_INCUMBENT    �    ?[Entity Extraction]    +-- Candidate name(s) detection    +-- Constituency name detection    +-- Party name detection    +-- Issue tag extraction (INFRASTRUCTURE|DEVELOPMENT|SECURITY|etc.)    +-- Location tagging (ward, zone, area names)    �    ?[Impact Scoring]    +-- Base = |sentiment_polarity| � political_relevance_score    +-- Source multiplier: Tier 1 = 1.0, Tier 2 = 0.7, Tier 3 = 0.4    +-- Recency decay: e^(-0.1 � hours_since_publication)    +-- Impact Score = Base � Source Multiplier � Recency Decay � 10    �    ?[Narrative Clustering]    +-- TF-IDF vectorization of article body    +-- Cosine similarity against existing cluster centroids    +-- Assign to nearest cluster (threshold: similarity > 0.65)    +-- If no match: create new cluster; alert analyst    �    ?[Output]    +-- Write to news_articles table    +-- If impact_score = 7.0: create alerts record    +-- Update Redis: news_sentiment_cache, narrative_momentum_cache
 12.3 Narrative Tracking
 Active narrative clusters are tracked with momentum scores:
 Rising: Cluster article count increasing over 24h window
-Stable: Article count within ±10% of 48h average
+Stable: Article count within �10% of 48h average
 Fading: Article count declining over 24h window
 Campaign Manager receives a daily narrative summary as part of the morning brief. War room team receives a real-time narrative momentum widget on the Command Centre.
 12.4 News Intelligence Display
 The News Intelligence module displays:
-Live Feed — Real-time ingested articles with sentiment badge, impact score, source, and entity tags. Filterable by language, source tier, sentiment, and impact threshold.
-Sentiment Timeline — 72-hour rolling chart of aggregate sentiment polarity (constituency-relevant articles only).
-Impact Leaderboard — Top 10 highest-impact articles of the last 24 hours.
-Narrative Cluster Board — All active clusters with momentum indicator, article count, and top headline per cluster.
-Source Health Monitor — Per-feed last-ingestion timestamp, articles per day, and failure flag.
+Live Feed � Real-time ingested articles with sentiment badge, impact score, source, and entity tags. Filterable by language, source tier, sentiment, and impact threshold.
+Sentiment Timeline � 72-hour rolling chart of aggregate sentiment polarity (constituency-relevant articles only).
+Impact Leaderboard � Top 10 highest-impact articles of the last 24 hours.
+Narrative Cluster Board � All active clusters with momentum indicator, article count, and top headline per cluster.
+Source Health Monitor � Per-feed last-ingestion timestamp, articles per day, and failure flag.
 
 PDCA: present plan before touching any file.
 '@
@@ -564,7 +564,7 @@ PDCA: present plan before touching any file.
     "06-booth-management" = @{
         model  = $SONNET
         task   = "TASK-006"
-        label  = "Session 6 · Booth Operations & Nightly Risk Scoring"
+        label  = "Session 6 � Booth Operations & Nightly Risk Scoring"
         prompt = @'
 Stack: Python 3.11, Celery, PostgreSQL, Redis
 Task file: tasks/TASK-006-booth-management.md
@@ -574,36 +574,36 @@ Key requirements extracted from PRD:
 14.1 Booth Data Architecture
 Every booth in the constituency (approximately 315 for Serilingampally AC-52) is represented as a first-class entity in the system with its own operational data profile.
 Booth Record Schema
-booths {    id                UUID PRIMARY KEY    constituency_id   UUID FK    booth_number      VARCHAR(10) NOT NULL UNIQUE    booth_name        VARCHAR(255)    zone_id           UUID FK → campaign_zones    location          PostGIS POINT (SRID 4326)    address           TEXT    total_voters      INTEGER    female_voters     INTEGER    male_voters       INTEGER    third_gender      INTEGER    assigned_commander UUID FK → users    volunteer_count   INTEGER (derived)    risk_score        DECIMAL(5,2) DEFAULT 50.0    contact_rate      DECIMAL(5,2) DEFAULT 0.0    health_score      DECIMAL(5,2) DEFAULT 50.0    last_report_at    TIMESTAMPTZ    last_contact_at   TIMESTAMPTZ    swing_booth       BOOLEAN DEFAULT FALSE    historical_margin DECIMAL(5,2)  -- prior election margin %    created_at        TIMESTAMPTZ    updated_at        TIMESTAMPTZ}
+booths {    id                UUID PRIMARY KEY    constituency_id   UUID FK    booth_number      VARCHAR(10) NOT NULL UNIQUE    booth_name        VARCHAR(255)    zone_id           UUID FK ? campaign_zones    location          PostGIS POINT (SRID 4326)    address           TEXT    total_voters      INTEGER    female_voters     INTEGER    male_voters       INTEGER    third_gender      INTEGER    assigned_commander UUID FK ? users    volunteer_count   INTEGER (derived)    risk_score        DECIMAL(5,2) DEFAULT 50.0    contact_rate      DECIMAL(5,2) DEFAULT 0.0    health_score      DECIMAL(5,2) DEFAULT 50.0    last_report_at    TIMESTAMPTZ    last_contact_at   TIMESTAMPTZ    swing_booth       BOOLEAN DEFAULT FALSE    historical_margin DECIMAL(5,2)  -- prior election margin %    created_at        TIMESTAMPTZ    updated_at        TIMESTAMPTZ}
 14.2 Booth Risk Score Formula
-The booth risk score (0–100, higher = more at risk) is computed nightly and cached in Redis:
-risk_score = (    (100 - contact_rate_pct) × 0.35        # Contact coverage deficit  + sentiment_negativity_score × 0.25      # Ground sentiment penalty  + escalation_burden × 0.20               # Open escalations weight  + staleness_penalty × 0.15               # Days since last report  + volunteer_gap_penalty × 0.05           # Coverage gap penalty)Where:  contact_rate_pct    = (voters_contacted / total_voters) × 100  sentiment_negativity = (negative_reports / total_reports) × 100 (last 48h)  escalation_burden   = min(open_escalation_count × 10, 100)  staleness_penalty   = min(days_since_last_report × 5, 40)  volunteer_gap_penalty = 100 if volunteer_count < 2 else 0
+The booth risk score (0�100, higher = more at risk) is computed nightly and cached in Redis:
+risk_score = (    (100 - contact_rate_pct) � 0.35        # Contact coverage deficit  + sentiment_negativity_score � 0.25      # Ground sentiment penalty  + escalation_burden � 0.20               # Open escalations weight  + staleness_penalty � 0.15               # Days since last report  + volunteer_gap_penalty � 0.05           # Coverage gap penalty)Where:  contact_rate_pct    = (voters_contacted / total_voters) � 100  sentiment_negativity = (negative_reports / total_reports) � 100 (last 48h)  escalation_burden   = min(open_escalation_count � 10, 100)  staleness_penalty   = min(days_since_last_report � 5, 40)  volunteer_gap_penalty = 100 if volunteer_count < 2 else 0
 Risk Color Classification
 Score Range
 Classification
 Action
-0–35
-🟢 HEALTHY
+0�35
+?? HEALTHY
 Standard operations
-36–60
-🟡 WATCH
+36�60
+?? WATCH
 Increase contact frequency
-61–80
-🟠 AT-RISK
+61�80
+?? AT-RISK
 Deploy additional volunteers; daily check-in
-81–100
-🔴 CRITICAL
+81�100
+?? CRITICAL
 Immediate Ground Commander intervention; Campaign Manager alert
 14.3 Booth Health Score
-The booth health score (0–100, higher = healthier) is a complementary metric tracking operational vitality:
-health_score = (    contact_rate_pct × 0.40  + recency_score × 0.30     # 100 if report < 24h, 50 if < 48h, 20 if > 48h  + volunteer_coverage × 0.20 # 100 if ≥ 3 volunteers, 67 if 2, 33 if 1, 0 if 0  + sentiment_positivity × 0.10)
+The booth health score (0�100, higher = healthier) is a complementary metric tracking operational vitality:
+health_score = (    contact_rate_pct � 0.40  + recency_score � 0.30     # 100 if report < 24h, 50 if < 48h, 20 if > 48h  + volunteer_coverage � 0.20 # 100 if = 3 volunteers, 67 if 2, 33 if 1, 0 if 0  + sentiment_positivity � 0.10)
 14.4 Volunteer Mapping
 Each booth maintains a volunteer roster:
-booth_volunteers {    id              UUID PRIMARY KEY    booth_id        UUID FK → booths    user_id         UUID FK → users (nullable for non-registered volunteers)    volunteer_name  VARCHAR(255)    phone           VARCHAR(15)    role            ENUM (BOOTH_AGENT, VOTER_CONTACT, TRANSPORT, COORDINATOR)    shift_start     TIME    shift_end       TIME    notes           TEXT    is_confirmed    BOOLEAN DEFAULT FALSE    created_at      TIMESTAMPTZ}
+booth_volunteers {    id              UUID PRIMARY KEY    booth_id        UUID FK ? booths    user_id         UUID FK ? users (nullable for non-registered volunteers)    volunteer_name  VARCHAR(255)    phone           VARCHAR(15)    role            ENUM (BOOTH_AGENT, VOTER_CONTACT, TRANSPORT, COORDINATOR)    shift_start     TIME    shift_end       TIME    notes           TEXT    is_confirmed    BOOLEAN DEFAULT FALSE    created_at      TIMESTAMPTZ}
 Booths with volunteer_count < 2 are flagged with a coverage gap warning. The Booth Management view includes a "Coverage Gaps" filter that instantly surfaces all under-resourced booths.
 14.5 Contact Rate Tracking
 Voter contact is logged through the field worker mobile interface:
-Worker selects booth → Opens contact log
+Worker selects booth ? Opens contact log
 Marks individual voters as contacted (by voter ID from roll or by manual count)
 System updates booth.contact_rate in real time
 Ward-level and zone-level aggregate contact rates computed hourly by Celery task
@@ -628,7 +628,7 @@ PDCA: present plan before touching any file.
     "07-prediction-sentiment" = @{
         model  = $SONNET
         task   = "TASK-007"
-        label  = "Session 7 · Win Probability Model & Sentiment Trends"
+        label  = "Session 7 � Win Probability Model & Sentiment Trends"
         prompt = @'
 Stack: Python 3.11, Celery, Redis, PostgreSQL
 Task file: tasks/TASK-007-prediction-sentiment.md
@@ -638,7 +638,7 @@ Key requirements extracted from PRD:
 15.1 Win Probability Model
 The win probability model produces a constituency-level election outcome probability updated every 15 minutes throughout the campaign.
 Model Formula
-win_probability = sigmoid(    w1 × contact_rate_normalized  + w2 × news_sentiment_normalized  + w3 × booth_health_aggregate  + w4 × opposition_activity_penalty  + w5 × historical_vote_share  + w6 × field_mood_index  + bias) × 100Default weights (campaign-manager configurable):  w1 (contact rate)       = 0.28  w2 (news sentiment)     = 0.18  w3 (booth health)       = 0.20  w4 (opposition penalty) = -0.15  w5 (historical share)   = 0.12  w6 (field mood)         = 0.17  bias                    = 0.10Normalization: all inputs normalized to [0, 1] range before weighting.Sigmoid: ensures output remains within (0%, 100%).
+win_probability = sigmoid(    w1 � contact_rate_normalized  + w2 � news_sentiment_normalized  + w3 � booth_health_aggregate  + w4 � opposition_activity_penalty  + w5 � historical_vote_share  + w6 � field_mood_index  + bias) � 100Default weights (campaign-manager configurable):  w1 (contact rate)       = 0.28  w2 (news sentiment)     = 0.18  w3 (booth health)       = 0.20  w4 (opposition penalty) = -0.15  w5 (historical share)   = 0.12  w6 (field mood)         = 0.17  bias                    = 0.10Normalization: all inputs normalized to [0, 1] range before weighting.Sigmoid: ensures output remains within (0%, 100%).
 The model stores daily snapshots in intelligence_scores for trend visualization. A 30-day trend chart is displayed on the Command Centre.
 Model Limitations (Disclosed)
 The model is a heuristic approximation, not a statistical election model
@@ -648,14 +648,14 @@ Adversarial events (e.g., opponent rally, negative viral story) may cause rapid 
 15.2 Sentiment Analysis Systems
 News Sentiment Aggregation
 Rolling weighted sentiment index for constituency-relevant news:
-constituency_sentiment_index = Σ(article_sentiment × article_weight) / Σ(article_weight)Where:  article_weight = impact_score × recency_decay  recency_decay  = e^(-0.05 × hours_since_publication)  Window         = Last 24 hours (configurable)
+constituency_sentiment_index = S(article_sentiment � article_weight) / S(article_weight)Where:  article_weight = impact_score � recency_decay  recency_decay  = e^(-0.05 � hours_since_publication)  Window         = Last 24 hours (configurable)
 Displayed as a time-series chart on Command Centre and News Intelligence module.
 Field Sentiment Index
 Aggregate voter mood from field reports:
-field_sentiment_index = (    (positive_reports × 1.0)  + (neutral_reports × 0.5)  + (mixed_reports × 0.25)  + (negative_reports × 0.0)) / total_reports × 100Window: configurable (6h, 24h, 48h, 7-day)
+field_sentiment_index = (    (positive_reports � 1.0)  + (neutral_reports � 0.5)  + (mixed_reports � 0.25)  + (negative_reports � 0.0)) / total_reports � 100Window: configurable (6h, 24h, 48h, 7-day)
 15.3 Issue Severity Ranking
 Issues extracted from field reports and news articles are ranked using a composite severity model:
-issue_severity = (    frequency_score × 0.30      # Reports mentioning issue in 48h  + sentiment_impact × 0.30     # Avg negativity of issue-related content  + booth_spread_score × 0.20   # Number of distinct booths reporting issue  + media_amplification × 0.20  # Number of news articles covering issue) × 10  # Scale to 0-10
+issue_severity = (    frequency_score � 0.30      # Reports mentioning issue in 48h  + sentiment_impact � 0.30     # Avg negativity of issue-related content  + booth_spread_score � 0.20   # Number of distinct booths reporting issue  + media_amplification � 0.20  # Number of news articles covering issue) � 10  # Scale to 0-10
 Top 5 issues by severity are displayed prominently on the Command Centre issue trends panel. Issues crossing severity 7.0 trigger CRITICAL alerts.
 
 PDCA: present plan before touching any file.
@@ -665,7 +665,7 @@ PDCA: present plan before touching any file.
     "08-opposition-intelligence" = @{
         model  = $SONNET
         task   = "TASK-008"
-        label  = "Session 8 · Opposition Monitoring & Sentiment Comparison"
+        label  = "Session 8 � Opposition Monitoring & Sentiment Comparison"
         prompt = @'
 Stack: Python 3.11, React 18, Leaflet.js
 Task file: tasks/TASK-008-opposition-intel.md
@@ -673,7 +673,7 @@ Module scope: app/opposition-intelligence/ ONLY.
 
 Key requirements extracted from PRD:
 16.1 Purpose & Design Philosophy
-Opposition intelligence in NETA AI is structured, systematic, and factual. The module monitors publicly available information — news coverage, public events, press statements, and field-observed opposition activity — to provide the campaign with awareness of what rivals are doing. The system explicitly does not enable or generate any disinformation, negative campaigns, or content targeting individuals.
+Opposition intelligence in NETA AI is structured, systematic, and factual. The module monitors publicly available information � news coverage, public events, press statements, and field-observed opposition activity � to provide the campaign with awareness of what rivals are doing. The system explicitly does not enable or generate any disinformation, negative campaigns, or content targeting individuals.
 16.2 Opposition Monitoring Sources
 Source
 Type
@@ -710,12 +710,12 @@ Article Count (24h)
 Sentiment
 Action
 (populated from live data)
-↑/→/↓
-—
-—
+?/?/?
+�
+�
 Counter-message / Monitor
 16.4 Counter-Intelligence Workflow
-When an opposition narrative reaches severity ≥7.0 or impact score ≥8.0:
+When an opposition narrative reaches severity =7.0 or impact score =8.0:
 System generates a WARNING or CRITICAL alert in Command Centre
 Alert links to the narrative cluster with supporting articles
 Campaign Manager receives WhatsApp notification
@@ -730,7 +730,7 @@ PDCA: present plan before touching any file.
     "09-whatsapp-integration" = @{
         model  = $SONNET
         task   = "TASK-009"
-        label  = "Session 9 · Meta WhatsApp Business API & Alert Routing"
+        label  = "Session 9 � Meta WhatsApp Business API & Alert Routing"
         prompt = @'
 Stack: Python 3.11, Meta Cloud API, Celery
 Task file: tasks/TASK-009-whatsapp-integration.md
@@ -739,7 +739,7 @@ Module scope: app/whatsapp-integration/ ONLY (status callbacks, alert delivery, 
 Key requirements extracted from PRD:
 24.1 Integration Architecture
 NETA AI uses the Meta WhatsApp Business Cloud API for operational alert delivery. All messages use pre-approved WhatsApp message templates to comply with Meta's policies.
-NETA AI Backend (Celery task)    │── POST https://graph.facebook.com/v18.0/{phone_id}/messages    │   Authorization: Bearer {WHATSAPP_API_TOKEN}    │   Body: { "to": recipient_phone, "template": template_name, "parameters": [...] }    │WhatsApp Business API    └── Delivers to recipient's WhatsApp number    │Webhook (inbound) → FastAPI /api/whatsapp/webhook    └── Delivery status updates (SENT, DELIVERED, READ, FAILED)
+NETA AI Backend (Celery task)    �-- POST https://graph.facebook.com/v18.0/{phone_id}/messages    �   Authorization: Bearer {WHATSAPP_API_TOKEN}    �   Body: { "to": recipient_phone, "template": template_name, "parameters": [...] }    �WhatsApp Business API    +-- Delivers to recipient's WhatsApp number    �Webhook (inbound) ? FastAPI /api/whatsapp/webhook    +-- Delivery status updates (SENT, DELIVERED, READ, FAILED)
 24.2 Message Template Catalogue
 Template Name
 Trigger
@@ -752,15 +752,15 @@ Campaign Manager
 critical_escalation
 Severity 5 field report
 Ground Commander + CM
-"CRITICAL: Severity 5 report at Booth {number} — {category}. SLA: 30 minutes. Open NETA AI immediately."
+"CRITICAL: Severity 5 report at Booth {number} � {category}. SLA: 30 minutes. Open NETA AI immediately."
 escalation_sla_breach
 SLA deadline passed
 Campaign Manager
 "SLA BREACH: Escalation #{id} at Booth {number} has exceeded the {n}-minute SLA. Immediate action required."
 high_impact_news
-News impact score ≥ 8.0
+News impact score = 8.0
 Campaign Manager
-"HIGH IMPACT: '{title}' [{source}] — Sentiment: {tone}. Impact score: {score}/10."
+"HIGH IMPACT: '{title}' [{source}] � Sentiment: {tone}. Impact score: {score}/10."
 booth_critical_risk
 Booth risk score crosses 80
 Ground Commander
@@ -780,7 +780,7 @@ If delivery fails after 3 retries: fallback SMS via configured provider (Phase 2
 Delivery failure rate alert: if >5% failure rate in 1 hour, Admin Dashboard alert generated
 24.4 Compliance
 All WhatsApp templates pre-approved by Meta before production deployment
-Campaign-related broadcasts (voter outreach) require explicit voter opt-in — managed separately from operational alerts
+Campaign-related broadcasts (voter outreach) require explicit voter opt-in � managed separately from operational alerts
 Operational alerts (to campaign team members) use the campaign team's registered numbers with their consent
 No voter personal data (from voter rolls) is sent via WhatsApp in any format
 
@@ -791,7 +791,7 @@ PDCA: present plan before touching any file.
     "10-devops-deployment" = @{
         model  = $SONNET
         task   = "TASK-010"
-        label  = "Session 10 · Docker Orchestration, Logging & Monitoring"
+        label  = "Session 10 � Docker Orchestration, Logging & Monitoring"
         prompt = @'
 Stack: Docker Compose, Nginx, Prometheus, Grafana, Sentry, Celery Beat/Flower
 Task file: tasks/TASK-010-devops-deployment.md
@@ -799,7 +799,7 @@ Module scope: root devops configuration, nginx setups, and monitoring scripts ON
 
 Key requirements extracted from PRD:
 19.1 Development Workflow
-Developer Branch    │── git push origin feature/xxx    │GitHub Actions:    ├── Lint: ruff (Python), ESLint (React)    ├── Type check: mypy (Python), tsc (TypeScript)    ├── Unit tests: pytest (backend), Vitest (frontend)    ├── Integration tests: pytest with test DB    └── Docker build: verify image builds    │Pull Request → Code Review → Merge to main    │GitHub Actions (main branch):    ├── Full test suite    ├── Docker build and push to registry    ├── Tag image with SHA + version    └── Deploy to staging (auto)    │Manual approval → Deploy to production    └── docker compose pull && docker compose up -d
+Developer Branch    �-- git push origin feature/xxx    �GitHub Actions:    +-- Lint: ruff (Python), ESLint (React)    +-- Type check: mypy (Python), tsc (TypeScript)    +-- Unit tests: pytest (backend), Vitest (frontend)    +-- Integration tests: pytest with test DB    +-- Docker build: verify image builds    �Pull Request ? Code Review ? Merge to main    �GitHub Actions (main branch):    +-- Full test suite    +-- Docker build and push to registry    +-- Tag image with SHA + version    +-- Deploy to staging (auto)    �Manual approval ? Deploy to production    +-- docker compose pull && docker compose up -d
 19.2 Deployment Commands
 # Production deploymentgit pull origin maindocker compose -f docker-compose.prod.yml pulldocker compose -f docker-compose.prod.yml up -d --no-deps api celery_worker celery_beatdocker compose -f docker-compose.prod.yml exec api alembic upgrade head  # DB migrations# Zero-downtime API restart (single instance)docker compose -f docker-compose.prod.yml restart api# View live logsdocker compose -f docker-compose.prod.yml logs -f api celery_worker# Emergency rollbackdocker compose -f docker-compose.prod.yml stop apidocker tag neta-api:previous neta-api:latestdocker compose -f docker-compose.prod.yml up -d api
 19.3 Database Migrations
@@ -812,7 +812,7 @@ Migration history maintained in version control
 18.1 Docker Compose Service Topology
 # Production service topology (docker-compose.prod.yml)services:  nginx:    image: nginx:1.25-alpine    ports: ["80:80", "443:443"]    volumes:      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro      - ./nginx/ssl:/etc/ssl/certs:ro      - static_files:/var/www/static:ro    depends_on: [api]    restart: unless-stopped    healthcheck:      test: ["CMD", "nginx", "-t"]      interval: 30s  api:    image: neta-api:${TAG:-latest}    environment:      - DATABASE_URL=${DATABASE_URL}      - REDIS_URL=${REDIS_URL}      - SECRET_KEY=${SECRET_KEY}      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}    depends_on: [postgres, redis]    restart: unless-stopped    healthcheck:      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]      interval: 30s      timeout: 10s      retries: 3  celery_worker:    image: neta-api:${TAG:-latest}    command: celery -A app.celery worker --loglevel=info --concurrency=4    depends_on: [redis, postgres]    restart: unless-stopped  celery_beat:    image: neta-api:${TAG:-latest}    command: celery -A app.celery beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler    depends_on: [redis, postgres]    restart: unless-stopped  celery_flower:    image: mher/flower:2.0    ports: ["5555:5555"]  # Internal only; Nginx proxies with auth    depends_on: [redis]    restart: unless-stopped  postgres:    image: postgis/postgis:15-3.3-alpine    volumes: [postgres_data:/var/lib/postgresql/data]    environment:      - POSTGRES_DB=${POSTGRES_DB}      - POSTGRES_USER=${POSTGRES_USER}      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}    restart: unless-stopped    healthcheck:      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]  redis:    image: redis:7-alpine    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes    volumes: [redis_data:/data]    restart: unless-stopped    healthcheck:      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
 18.2 Nginx Configuration
-# Key security and performance directivesserver {    listen 443 ssl http2;    server_name app.netaai.in;    # SSL    ssl_certificate /etc/ssl/certs/fullchain.pem;    ssl_certificate_key /etc/ssl/certs/privkey.pem;    ssl_protocols TLSv1.3;    ssl_prefer_server_ciphers off;    # Security headers    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;    add_header X-Frame-Options "DENY" always;    add_header X-Content-Type-Options "nosniff" always;    add_header Referrer-Policy "strict-origin-when-cross-origin" always;    server_tokens off;    # Rate limiting    limit_req zone=api burst=20 nodelay;    limit_req zone=auth burst=5 nodelay;    # Static files (Vite build output)    location / {        root /var/www/static;        try_files $uri $uri/ /index.html;        expires 1y;        add_header Cache-Control "public, immutable";    }    # API proxy    location /api/ {        proxy_pass http://api:8000;        proxy_set_header Host $host;        proxy_set_header X-Real-IP $remote_addr;        client_max_body_size 11M;    }    # SSE endpoint — disable buffering    location /api/stream {        proxy_pass http://api:8000;        proxy_buffering off;        proxy_cache off;        proxy_read_timeout 86400s;  # 24h SSE connection        add_header X-Accel-Buffering "no";    }}
+# Key security and performance directivesserver {    listen 443 ssl http2;    server_name app.netaai.in;    # SSL    ssl_certificate /etc/ssl/certs/fullchain.pem;    ssl_certificate_key /etc/ssl/certs/privkey.pem;    ssl_protocols TLSv1.3;    ssl_prefer_server_ciphers off;    # Security headers    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;    add_header X-Frame-Options "DENY" always;    add_header X-Content-Type-Options "nosniff" always;    add_header Referrer-Policy "strict-origin-when-cross-origin" always;    server_tokens off;    # Rate limiting    limit_req zone=api burst=20 nodelay;    limit_req zone=auth burst=5 nodelay;    # Static files (Vite build output)    location / {        root /var/www/static;        try_files $uri $uri/ /index.html;        expires 1y;        add_header Cache-Control "public, immutable";    }    # API proxy    location /api/ {        proxy_pass http://api:8000;        proxy_set_header Host $host;        proxy_set_header X-Real-IP $remote_addr;        client_max_body_size 11M;    }    # SSE endpoint � disable buffering    location /api/stream {        proxy_pass http://api:8000;        proxy_buffering off;        proxy_cache off;        proxy_read_timeout 86400s;  # 24h SSE connection        add_header X-Accel-Buffering "no";    }}
 18.3 Environment Variables
 Variable
 Description
@@ -831,10 +831,10 @@ CORS whitelist (JSON array)
 ["https://app.netaai.in"]
 WHATSAPP_API_TOKEN
 Meta WhatsApp Business API bearer token
-—
+�
 WHATSAPP_PHONE_ID
 WhatsApp Business phone number ID
-—
+�
 POSTGRES_DB
 Database name
 netaai_prod
@@ -843,10 +843,10 @@ Database user
 netaai_app
 POSTGRES_PASSWORD
 Database password
-≥32 random characters
+=32 random characters
 REDIS_PASSWORD
 Redis AUTH password
-≥32 random characters
+=32 random characters
 NLP_MODEL_PATH
 Path to fine-tuned NLP model
 /models/indic-bert-political
@@ -1001,50 +1001,50 @@ Key Metrics
 Alert Threshold
 API Health
 Request rate, P99 latency, error rate
-Error rate > 1% → alert
+Error rate > 1% ? alert
 Celery Operations
 Queue depth per queue, failed task count
-Queue depth > 500 → alert
+Queue depth > 500 ? alert
 Database
 Connection pool usage, slow queries, table sizes
-Pool > 90% → alert
+Pool > 90% ? alert
 Redis
 Memory usage, hit rate, eviction rate
-Memory > 80% → alert
+Memory > 80% ? alert
 RSS Pipeline
 Articles ingested per hour, feed failure count
-Feed failure > 3 consecutive → alert
+Feed failure > 3 consecutive ? alert
 SSE Connections
 Active connection count, reconnection rate
-— (informational)
+� (informational)
 
 PDCA: present plan before touching any file.
 '@
     }
 }
 
-# ── Action: list ──────────────────────────────────────────────────────────────
+# -- Action: list --------------------------------------------------------------
 if ($Session -eq "list") {
     Write-Host ""
-    Write-Host "  NETA AI — Available Development Sessions:" -ForegroundColor Cyan
+    Write-Host "  NETA AI � Available Development Sessions:" -ForegroundColor Cyan
     Write-Host "  =========================================" -ForegroundColor Cyan
     Write-Host ""
     $sortedKeys = $sessions.Keys | Sort-Object
     foreach ($key in $sortedKeys) {
         $s = $sessions[$key]
-        $tag = if ($s.model -like "*haiku*") { "Haiku  🟢" } else { "Sonnet 🔵" }
+        $tag = if ($s.model -like "*haiku*") { "Haiku  ??" } else { "Sonnet ??" }
         Write-Host ("  {0,-28} {1,-50} [{2}]" -f $key, $s.label, $tag)
     }
     Write-Host ""
     exit 0
 }
 
-# ── Action: debug ─────────────────────────────────────────────────────────────
+# -- Action: debug -------------------------------------------------------------
 if ($Session -eq "debug") {
     Write-Host ""
-    Write-Host "  ┌──────────────────────────────────────────────┐" -ForegroundColor Yellow
-    Write-Host "  │  DEBUG SESSION MODE                          │" -ForegroundColor Yellow
-    Write-Host "  └──────────────────────────────────────────────┘" -ForegroundColor Yellow
+    Write-Host "  +----------------------------------------------+" -ForegroundColor Yellow
+    Write-Host "  �  DEBUG SESSION MODE                          �" -ForegroundColor Yellow
+    Write-Host "  +----------------------------------------------+" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  Rule: One error, one file, one session." -ForegroundColor White
     Write-Host "  Instructions for Claude Code:" -ForegroundColor White
@@ -1061,17 +1061,17 @@ Instructions:
 - Test and verify the fix.
 '@
     $debugPrompt | Set-Clipboard
-    Write-Host "  ✓ Copied debug prompt to clipboard. Paste in Claude Code to start." -ForegroundColor Green
+    Write-Host "  ? Copied debug prompt to clipboard. Paste in Claude Code to start." -ForegroundColor Green
     Write-Host ""
     exit 0
 }
 
-# ── Action: audit ─────────────────────────────────────────────────────────────
+# -- Action: audit -------------------------------------------------------------
 if ($Session -eq "audit") {
     Write-Host ""
-    Write-Host "  ╔══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "  ║   NETA AI — PROJECT STATUS AUDIT                         ║" -ForegroundColor Cyan
-    Write-Host "  ╚══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host "  +----------------------------------------------------------+" -ForegroundColor Cyan
+    Write-Host "  �   NETA AI � PROJECT STATUS AUDIT                         �" -ForegroundColor Cyan
+    Write-Host "  +----------------------------------------------------------+" -ForegroundColor Cyan
     Write-Host ""
 
     # Try to read JSON checkpoint file first (more reliable than file patterns)
@@ -1080,44 +1080,44 @@ if ($Session -eq "audit") {
         try {
             $auditData = Get-Content $checkpointFile -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
-            Write-Host "  📊 PHASE 1 STATUS: $($auditData.phase_1_completion.overall_status) ($($auditData.phase_1_completion.completion_percentage)%)" -ForegroundColor Cyan
+            Write-Host "  ?? PHASE 1 STATUS: $($auditData.phase_1_completion.overall_status) ($($auditData.phase_1_completion.completion_percentage)%)" -ForegroundColor Cyan
             Write-Host "  Last Updated: $($auditData.audit_metadata.last_updated)" -ForegroundColor DarkGray
             Write-Host ""
 
             foreach ($key in @("01-database-design", "02-security-auth", "03-geojson-mapping", "04-ground-operations")) {
                 if ($auditData.sessions.PSObject.Properties.Name -contains $key) {
                     $item = $auditData.sessions.$key
-                    $icon = if ($item.status -eq "COMPLETE") { "✓" } else { "○" }
+                    $icon = if ($item.status -eq "COMPLETE") { "?" } else { "?" }
                     $color = if ($item.status -eq "COMPLETE") { "Green" } else { "Yellow" }
                     Write-Host ("  [$icon] Session {0}: {1,-40} [{2} tests]" -f $key.Substring(0,2), $item.deliverables, $item.tests_passed) -ForegroundColor $color
                 }
             }
 
             Write-Host ""
-            Write-Host "  📋 PHASE 2 QUEUED:" -ForegroundColor Yellow
+            Write-Host "  ?? PHASE 2 QUEUED:" -ForegroundColor Yellow
             foreach ($key in @("05-news-intelligence", "06-booth-management", "07-prediction-sentiment", "08-opposition-intelligence", "09-whatsapp-integration", "10-devops-deployment")) {
                 if ($auditData.sessions.PSObject.Properties.Name -contains $key) {
                     $item = $auditData.sessions.$key
-                    Write-Host ("  [○] Session {0}: {1}" -f $key.Substring(0,2), $item.deliverables) -ForegroundColor DarkGray
+                    Write-Host ("  [?] Session {0}: {1}" -f $key.Substring(0,2), $item.deliverables) -ForegroundColor DarkGray
                 }
             }
 
             Write-Host ""
-            Write-Host "  📈 METRICS:" -ForegroundColor Cyan
-            Write-Host ("     • Total Sessions: {0} (Complete: {1}, Queued: {2})" -f $auditData.metrics.total_sessions, $auditData.metrics.sessions_complete, $auditData.metrics.sessions_queued) -ForegroundColor White
-            Write-Host ("     • Tests Passing: {0}" -f $auditData.metrics.total_tests_passing) -ForegroundColor White
-            Write-Host ("     • API Endpoints: {0}" -f $auditData.metrics.api_endpoints) -ForegroundColor White
-            Write-Host ("     • ORM Models: {0}" -f $auditData.metrics.orm_models) -ForegroundColor White
-            Write-Host ("     • Documentation: {0} pages" -f $auditData.metrics.documentation_pages) -ForegroundColor White
+            Write-Host "  ?? METRICS:" -ForegroundColor Cyan
+            Write-Host ("     � Total Sessions: {0} (Complete: {1}, Queued: {2})" -f $auditData.metrics.total_sessions, $auditData.metrics.sessions_complete, $auditData.metrics.sessions_queued) -ForegroundColor White
+            Write-Host ("     � Tests Passing: {0}" -f $auditData.metrics.total_tests_passing) -ForegroundColor White
+            Write-Host ("     � API Endpoints: {0}" -f $auditData.metrics.api_endpoints) -ForegroundColor White
+            Write-Host ("     � ORM Models: {0}" -f $auditData.metrics.orm_models) -ForegroundColor White
+            Write-Host ("     � Documentation: {0} pages" -f $auditData.metrics.documentation_pages) -ForegroundColor White
 
             Write-Host ""
-            Write-Host "  ✨ Deployment Status: $($auditData.deployment_status.status)" -ForegroundColor Green
+            Write-Host "  ? Deployment Status: $($auditData.deployment_status.status)" -ForegroundColor Green
             Write-Host ""
 
             exit 0
         }
         catch {
-            Write-Host "  ⚠ Could not parse checkpoint file, using fallback detection..." -ForegroundColor DarkGray
+            Write-Host "  ? Could not parse checkpoint file, using fallback detection..." -ForegroundColor DarkGray
         }
     }
 
@@ -1139,7 +1139,7 @@ if ($Session -eq "audit") {
         $found = Test-Path $item.Path
 
         if ($found) {
-            Write-Host ("  [✓] {0,-40} - PRESENT" -f $item.Name) -ForegroundColor Green
+            Write-Host ("  [?] {0,-40} - PRESENT" -f $item.Name) -ForegroundColor Green
             $completedCount++
         } else {
             Write-Host ("  [ ] {0,-40} - MISSING" -f $item.Name) -ForegroundColor Red
@@ -1153,19 +1153,19 @@ if ($Session -eq "audit") {
     exit 0
 }
 
-# ── Execute Session ───────────────────────────────────────────────────────────
+# -- Execute Session -----------------------------------------------------------
 $s = $sessions[$Session]
 Write-Host ""
-Write-Host "  ┌────────────────────────────────────────────────────────┐" -ForegroundColor Cyan
-Write-Host ("  │  {0,-54}│" -f $s.label) -ForegroundColor Cyan
-Write-Host ("  │  Model: {0,-47}│" -f $s.model) -ForegroundColor Cyan
-Write-Host "  └────────────────────────────────────────────────────────┘" -ForegroundColor Cyan
+Write-Host "  +--------------------------------------------------------+" -ForegroundColor Cyan
+Write-Host ("  �  {0,-54}�" -f $s.label) -ForegroundColor Cyan
+Write-Host ("  �  Model: {0,-47}�" -f $s.model) -ForegroundColor Cyan
+Write-Host "  +--------------------------------------------------------+" -ForegroundColor Cyan
 Write-Host ""
 Write-Host $s.prompt -ForegroundColor White
 Write-Host ""
 
 $s.prompt | Set-Clipboard
-Write-Host "  ✓ Copied prompt to clipboard. Paste in Claude Code then brainstorm." -ForegroundColor Green
+Write-Host "  ? Copied prompt to clipboard. Paste in Claude Code then brainstorm." -ForegroundColor Green
 Write-Host ""
 
 # Support running in tests

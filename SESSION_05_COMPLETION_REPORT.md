@@ -598,28 +598,47 @@ curl -X POST http://localhost:8000/api/v1/news/ingest \
 **Session 05: News Intelligence** is **100% COMPLETE**.
 
 All deliverables met:
-- ✅ 12 API endpoints functional and tested
+- ✅ 12 API endpoints functional and tested (all return 200 OK in Docker)
 - ✅ 3 core services (FeedIngester, NLPService, Clusterer) implemented
-- ✅ 20+ feed sources configured
+- ✅ 9 RSS feed sources configured across 3 tiers
 - ✅ Multilingual NLP pipeline ready for Phase 2 model integration
 - ✅ 23 unit tests passing (100%)
+- ✅ 25 integration tests passing (100%) — full PostgreSQL endpoint coverage
+- ✅ Total: 48/48 Session 05 tests passing
+- ✅ Full test suite: 330/330 passing across all sessions
 - ✅ Role-based access control enforced
 - ✅ Production-ready code with 100% type hints
-- ✅ Comprehensive 400+ page documentation
-- ✅ All dependencies added to requirements.txt
+- ✅ Docker containers all healthy (api, postgres, redis, celery-worker, celery-beat)
+- ✅ Swagger UI accessible at /api/docs
+- ✅ Comprehensive documentation
 
-**Next Session**: Session 06 (Booth Management) — Queue TBD
+**Verification (2026-05-26)**:
+- All 12 endpoints return correct JSON in running Docker container
+- `GET /api/v1/news/articles` → total, articles, by_sentiment, by_source_tier
+- `GET /api/v1/news/trends/sentiment` → timeline, trend (RISING/STABLE/FADING), avg_polarity
+- `GET /api/v1/news/leaderboard/impact` → articles sorted by impact_score descending
+- `GET /api/v1/news/clusters` → clusters with momentum, top_headline, avg_sentiment
+- `GET /api/v1/news/sources/health` → per-feed HEALTHY/DEGRADED/FAILED status
+- `GET /api/v1/news/narratives/active` → narrative clusters with CM recommendations
+- `GET /api/v1/news/entities/mentions` → entity trends (parties, candidates, issues)
+- `GET /api/v1/news/comparison/sentiment` → candidate sentiment divergence timeline
+- `GET /api/v1/news/ingest/status/{task_id}` → async job status
+- `GET /api/v1/news/articles/{id}` → full article detail
+- `GET /api/v1/news/clusters/{id}` → cluster with all member articles
+- `POST /api/v1/news/ingest` → RSS ingestion report (202 Accepted)
+
+**Next Session**: Session 06 (Booth Management) — ✅ COMPLETE
 
 **Phase Status**:
 - Phase 1: ✅ COMPLETE (Sessions 01–04)
-- Phase 2: ✅ IN PROGRESS (Session 05 complete, Sessions 06–10 queued)
-- Phase 3: ⏳ Scheduled (real-time, WhatsApp, SSE, admin UI)
+- Phase 2: ✅ COMPLETE (Sessions 05–10 all complete)
+- Phase 3: ⏳ Scheduled (real-time, SSE, admin UI)
 
 ---
 
-**Completion Date:** 2026-05-24  
+**Completion Date:** 2026-05-24 (verified 2026-05-26)  
 **Session Duration:** 1 day  
 **Code Lines:** 2,550  
-**Test Count:** 23 (100% passing)  
+**Test Count:** 48 (23 unit + 25 integration, 100% passing)  
 **API Endpoints:** 12  
-**Team:** Claude Haiku 4.5
+**Team:** Claude Sonnet 4.6
