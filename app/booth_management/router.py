@@ -1,7 +1,9 @@
 """
 Booth Management API Router
 
-12 endpoints for booth management, volunteer coordination, and risk monitoring.
+13 endpoints for booth management, volunteer coordination, and risk monitoring.
+Static paths (risk-report, health/status, bulk-update) declared before
+parameterized paths (/{booth_id}) to avoid FastAPI routing conflicts.
 """
 
 from typing import Optional
@@ -23,7 +25,6 @@ from app.booth_management.models import (
 
 router = APIRouter(prefix="/api/v1/booths", tags=["Booth Management"])
 
-# Service instance (singleton)
 service = BoothService()
 
 
@@ -49,8 +50,6 @@ async def list_booths(
     """
     List all booths with filtering and aggregation.
 
-    Filters can be combined. Returns booth list with aggregations by risk level and health status.
-
     **Access Control**: ground_commander, campaign_manager, data_analyst, super_admin
     """
     return await service.list_booths(
@@ -69,7 +68,71 @@ async def list_booths(
 
 
 # ============================================================================
-# 2. Get Booth Details
+# 2. Risk Report  — static path, must precede /{booth_id}
+# ============================================================================
+
+@router.get("/risk-report", response_model=RiskReportResponse)
+async def get_risk_report(
+    constituency_id: UUID = Query(..., description="Constituency ID"),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("ground_commander", "campaign_manager", "super_admin")),
+) -> RiskReportResponse:
+    """
+    Get risk analysis report for a constituency.
+
+    Identifies high-risk, swing, and under-resourced booths with recommended interventions.
+
+    **Access Control**: ground_commander, campaign_manager, super_admin
+    """
+    return await service.get_risk_report(db, constituency_id)
+
+
+# ============================================================================
+# 3. Health Dashboard  — static path, must precede /{booth_id}
+# ============================================================================
+
+@router.get("/health/status", response_model=HealthDashboardResponse)
+async def get_health_dashboard(
+    constituency_id: UUID = Query(..., description="Constituency ID"),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("ground_commander", "campaign_manager", "data_analyst", "super_admin")),
+) -> HealthDashboardResponse:
+    """
+    Get booth health dashboard for a constituency.
+
+    **Access Control**: ground_commander, campaign_manager, data_analyst, super_admin
+    """
+    return await service.get_health_dashboard(db, constituency_id)
+
+
+# ============================================================================
+# 4. Bulk Update  — static path (POST), must precede /{booth_id} subtypes
+# ============================================================================
+
+@router.post("/bulk-update", status_code=status.HTTP_200_OK)
+async def bulk_update_booths(
+    request: BulkUpdateBoothsRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("campaign_manager", "super_admin")),
+):
+    """
+    Bulk recompute risk/health scores across multiple booths.
+
+    **Access Control**: campaign_manager, super_admin
+    """
+    updated = 0
+    for booth_id in request.booth_ids:
+        try:
+            await service.recompute_booth_scores(db, booth_id)
+            updated += 1
+        except Exception:
+            pass
+
+    return {"updated_count": updated, "total_requested": len(request.booth_ids)}
+
+
+# ============================================================================
+# 5. Get Booth Details
 # ============================================================================
 
 @router.get("/{booth_id}", response_model=BoothResponse)
@@ -79,9 +142,7 @@ async def get_booth_details(
     user: User = Depends(require_role("ground_commander", "campaign_manager", "data_analyst", "super_admin")),
 ) -> BoothResponse:
     """
-    Get full details of a single booth by ID.
-
-    Includes booth metrics, volunteer assignments, and scores.
+    Get full details of a single booth.
 
     **Access Control**: ground_commander, campaign_manager, data_analyst, super_admin
     """
@@ -89,7 +150,7 @@ async def get_booth_details(
 
 
 # ============================================================================
-# 3. Update Booth
+# 6. Update Booth
 # ============================================================================
 
 @router.patch("/{booth_id}", response_model=BoothResponse)
@@ -100,7 +161,7 @@ async def update_booth(
     user: User = Depends(require_role("ground_commander", "campaign_manager", "super_admin")),
 ) -> BoothResponse:
     """
-    Update booth fields (contact rate, last contact time).
+    Update booth fields (contact rate, last contact time, notes).
 
     **Access Control**: ground_commander, campaign_manager, super_admin
     """
@@ -114,7 +175,7 @@ async def update_booth(
 
 
 # ============================================================================
-# 4. Assign Commander to Booth
+# 7. Assign Commander
 # ============================================================================
 
 @router.post("/{booth_id}/assign-commander", response_model=BoothResponse, status_code=status.HTTP_200_OK)
@@ -133,7 +194,7 @@ async def assign_booth_commander(
 
 
 # ============================================================================
-# 5. Recompute Booth Scores
+# 8. Recompute Scores
 # ============================================================================
 
 @router.post("/{booth_id}/recompute-scores", response_model=BoothResponse, status_code=status.HTTP_200_OK)
@@ -143,13 +204,7 @@ async def recompute_booth_scores(
     user: User = Depends(require_role("campaign_manager", "super_admin")),
 ) -> BoothResponse:
     """
-    Manually trigger risk and health score recomputation for a booth.
-
-    Fetches latest metrics and recalculates scores based on:
-    - Voter contact rate
-    - Field reports (high-severity)
-    - Volunteer coverage
-    - Report frequency
+    Manually trigger risk and health score recomputation.
 
     **Access Control**: campaign_manager, super_admin
     """
@@ -157,82 +212,7 @@ async def recompute_booth_scores(
 
 
 # ============================================================================
-# 6. Bulk Update Booths
-# ============================================================================
-
-@router.post("/bulk-update", status_code=status.HTTP_200_OK)
-async def bulk_update_booths(
-    request: BulkUpdateBoothsRequest,
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_role("campaign_manager", "super_admin")),
-):
-    """
-    Bulk update multiple booths (typically for batch risk recomputation).
-
-    **Access Control**: campaign_manager, super_admin
-    """
-    # Note: This is a simplified version; full implementation would handle
-    # updates across multiple booths with transaction management
-    updated = 0
-    for booth_id in request.booth_ids:
-        try:
-            await service.recompute_booth_scores(db, booth_id)
-            updated += 1
-        except Exception:
-            pass
-
-    return {"updated_count": updated, "total_requested": len(request.booth_ids)}
-
-
-# ============================================================================
-# 7. Get Risk Report
-# ============================================================================
-
-@router.get("/risk-report", response_model=RiskReportResponse)
-async def get_risk_report(
-    constituency_id: UUID = Query(..., description="Constituency ID"),
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_role("ground_commander", "campaign_manager", "super_admin")),
-) -> RiskReportResponse:
-    """
-    Get risk analysis report for a constituency.
-
-    Identifies:
-    - High-risk booths (risk_score >= 70)
-    - Swing booths (competitive indicator)
-    - Under-resourced booths (volunteer coverage < 50%)
-    - Recommended interventions
-
-    **Access Control**: ground_commander, campaign_manager, super_admin
-    """
-    return await service.get_risk_report(db, constituency_id)
-
-
-# ============================================================================
-# 8. Get Health Dashboard
-# ============================================================================
-
-@router.get("/health/status", response_model=HealthDashboardResponse)
-async def get_health_dashboard(
-    constituency_id: UUID = Query(..., description="Constituency ID"),
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_role("ground_commander", "campaign_manager", "data_analyst", "super_admin")),
-) -> HealthDashboardResponse:
-    """
-    Get booth health dashboard for a constituency.
-
-    Provides:
-    - Count of healthy, degraded, and critical booths
-    - Average risk and health scores
-    - Booths needing attention
-
-    **Access Control**: ground_commander, campaign_manager, data_analyst, super_admin
-    """
-    return await service.get_health_dashboard(db, constituency_id)
-
-
-# ============================================================================
-# 9. List Volunteers for Booth
+# 9. List Volunteers
 # ============================================================================
 
 @router.get("/{booth_id}/volunteers", response_model=list[VolunteerResponse])
@@ -250,7 +230,7 @@ async def list_booth_volunteers(
 
 
 # ============================================================================
-# 10. Add Volunteer to Booth
+# 10. Add Volunteer
 # ============================================================================
 
 @router.post("/{booth_id}/volunteers", response_model=VolunteerResponse, status_code=status.HTTP_201_CREATED)
@@ -322,7 +302,7 @@ async def remove_booth_volunteer(
 
 
 # ============================================================================
-# Bonus: Get Booth Coverage
+# 13. Get Booth Coverage
 # ============================================================================
 
 @router.get("/{booth_id}/coverage", response_model=CoverageResponse)
@@ -334,10 +314,7 @@ async def get_booth_coverage(
     """
     Get volunteer coverage analysis for a booth.
 
-    Shows:
-    - Total volunteers by role
-    - Coverage percentage (volunteers vs target)
-    - Coverage status (FULL, PARTIAL, MINIMAL)
+    Shows total volunteers by role and coverage percentage vs target.
 
     **Access Control**: ground_commander, campaign_manager, data_analyst, super_admin
     """

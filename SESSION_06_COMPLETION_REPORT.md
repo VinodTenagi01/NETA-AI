@@ -1,6 +1,6 @@
 # Session 06: Booth Management — Completion Report
 
-**Date:** 2026-05-24  
+**Date:** 2026-05-26 (verified & completed)
 **Module:** `app/booth_management/`  
 **Status:** ✅ **COMPLETE**  
 **Overall Completion:** Phase 2 — Session 06 (Booth Management)
@@ -11,7 +11,7 @@
 
 Session 06 implements the Booth Management module, enabling centralized lifecycle management of 400+ polling booths across Serilingampally AC-52. The module provides risk scoring, health monitoring, volunteer coordination, and real-time booth status tracking for ground commanders and campaign managers.
 
-**Key Achievement**: 13 production-ready API endpoints + 42 comprehensive unit tests (100% passing) + risk/health scoring engine + volunteer lifecycle management.
+**Key Achievement**: 13 production-ready API endpoints + 64 tests (42 unit + 22 integration, 100% passing) + risk/health scoring engine + volunteer lifecycle management + 5 critical bugs fixed during verification.
 
 ---
 
@@ -180,16 +180,25 @@ app/booth_management/
 - Logic coverage: happy path, edge cases, error scenarios
 - Mathematical verification of scoring formulas
 
-### 3.2 Integration Tests (17 tests, SQLite compatibility issues noted)
+### 3.2 Integration Tests (22 tests, 100% passing)
 
-Created comprehensive integration tests covering:
-- Booth CRUD lifecycle
-- Volunteer assignment workflow
-- Risk assessment end-to-end
-- Coverage calculation with multiple volunteers
-- Error handling for non-existent booths/volunteers
+Integration tests cover booth and volunteer workflows against live PostgreSQL with savepoint rollback isolation.
+Tests now use the shared `pg_session` / `pg_test_booth` fixtures from `conftest.py` (consistent with Session 05 pattern).
 
-**Note**: Integration tests require PostgreSQL with PostGIS (not SQLite). These tests pass with a real database and can be run via `pytest tests/test_booth_management_integration.py` after database setup.
+- `TestBoothServiceIntegration` (10 tests): list, get, update, recompute, risk report, health dashboard, filters, aggregations
+- `TestVolunteerServiceIntegration` (8 tests): add, invalid role, nonexistent booth, list, confirm, role update, remove, coverage
+- `TestBoothManagementWorkflow` (4 tests): full setup flow, risk assessment, role breakdown, bulk confirm
+
+**All 22 integration tests pass against live PostgreSQL (localhost:5432).**
+
+### 3.3 Full Suite
+
+| Module | Tests | Status |
+|--------|-------|--------|
+| Sessions 01–04 + Auth | 223 | ✅ |
+| Session 05: News Intelligence | 48 | ✅ |
+| Session 06: Booth Management | 64 | ✅ |
+| **Total** | **335** | **✅ 335/335** |
 
 ---
 
@@ -371,6 +380,19 @@ pytest tests/test_booth_management_unit.py --cov=app.booth_management
 
 ---
 
-**Report Generated**: 2026-05-24  
-**Git Commit**: [SESSION-06] Complete: Booth Management Phase 2 Delivery  
-**Co-Authored-By**: Claude Haiku 4.5
+## Bugs Fixed During Verification (2026-05-26)
+
+| Bug | Root Cause | Fix |
+|-----|-----------|-----|
+| `GET /risk-report` → 422 UUID error | Static route declared after `/{booth_id}` | Moved `/risk-report`, `/health/status`, `/bulk-update` before `/{booth_id}` in router |
+| `list_booths()` count query crash | `BinaryExpression.__iter__` not iterable | Apply `stmt.whereclause` directly instead of iterating |
+| Integration tests fail locally | Default DB host `postgres:5432` only works inside Docker | Changed `conftest.py` default to `localhost:5432` |
+| `AsyncClient(app=app)` TypeError | httpx ≥ 0.27 removed `app=` parameter | Updated to `ASGITransport(app=app)` |
+| 403 vs 401 in auth tests | Missing token returns 401, not 403 | Fixed test assertions |
+| Sentiment comparison ignores candidates | Endpoint queried all articles | Rewrote to filter by candidate name using ILIKE |
+
+---
+
+**Report Generated**: 2026-05-26  
+**Git Commit**: Session 6 completed  
+**Co-Authored-By**: Claude Sonnet 4.6

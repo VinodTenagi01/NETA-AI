@@ -303,38 +303,52 @@ async def compare_sentiment(
     Returns alerts if opponent sentiment is improving faster than incumbent.
     """
     from datetime import timedelta, datetime
-    from sqlalchemy import select, func, and_, case
+    from sqlalchemy import select, func, and_, or_
     from app.database_design.models import NewsArticle
 
     cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-    # Query sentiment by date
-    stmt = select(
-        func.date(NewsArticle.ingested_at).label("date"),
-        func.avg(NewsArticle.sentiment_polarity).label("polarity"),
-    ).where(
-        NewsArticle.ingested_at >= cutoff_date
-    ).group_by(
-        func.date(NewsArticle.ingested_at)
-    ).order_by(
-        func.date(NewsArticle.ingested_at)
-    )
+    async def _daily_sentiment(candidate: str):
+        """Average daily sentiment for articles mentioning candidate in title or tags."""
+        stmt = select(
+            func.date(NewsArticle.ingested_at).label("date"),
+            func.avg(NewsArticle.sentiment_polarity).label("polarity"),
+        ).where(
+            and_(
+                NewsArticle.ingested_at >= cutoff_date,
+                or_(
+                    NewsArticle.title.ilike(f"%{candidate}%"),
+                    NewsArticle.body_excerpt.ilike(f"%{candidate}%"),
+                    func.cast(NewsArticle.entity_tags, String).ilike(f"%{candidate}%"),
+                ),
+            )
+        ).group_by(
+            func.date(NewsArticle.ingested_at)
+        ).order_by(
+            func.date(NewsArticle.ingested_at)
+        )
+        result = await db.execute(stmt)
+        return {str(row[0]): float(row[1]) for row in result.fetchall()}
 
-    result = await db.execute(stmt)
-    rows = result.fetchall()
+    from sqlalchemy import String
 
-    # Build timeline (simplified: assuming sentiment applies to both for MVP)
+    c1_by_date = await _daily_sentiment(candidate_1)
+    c2_by_date = await _daily_sentiment(candidate_2)
+
+    # Merge dates from both candidates
+    all_dates = sorted(set(c1_by_date) | set(c2_by_date))
+
     timeline = [
         SentimentComparisonPoint(
-            date=str(row[0]),
-            candidate_1_sentiment=float(row[1]) if row[1] else 0.0,
-            candidate_2_sentiment=float(row[1]) * 0.8 if row[1] else 0.0,  # Placeholder
-            divergence=float(row[1]) * 0.2 if row[1] else 0.0,
+            date=date,
+            candidate_1_sentiment=c1_by_date.get(date, 0.0),
+            candidate_2_sentiment=c2_by_date.get(date, 0.0),
+            divergence=abs(c1_by_date.get(date, 0.0) - c2_by_date.get(date, 0.0)),
         )
-        for row in rows
+        for date in all_dates
     ]
 
-    # Generate alerts
+    # Alert if opponent is trending higher than incumbent in the latest period
     alerts = []
     if timeline and timeline[-1].candidate_2_sentiment > timeline[-1].candidate_1_sentiment:
         alerts.append("Opponent sentiment trending positive (last 3 days)")

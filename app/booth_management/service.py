@@ -97,8 +97,8 @@ class BoothService:
 
         # Get total count before pagination
         count_stmt = select(func.count(Booth.id)).select_from(Booth)
-        for clause in stmt.whereclause.__iter__() if stmt.whereclause is not None else []:
-            count_stmt = count_stmt.where(clause)
+        if stmt.whereclause is not None:
+            count_stmt = count_stmt.where(stmt.whereclause)
 
         count_result = await db.execute(count_stmt)
         total = count_result.scalar() or 0

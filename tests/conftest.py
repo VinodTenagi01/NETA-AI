@@ -10,7 +10,7 @@ from datetime import datetime
 from uuid import uuid4
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -83,7 +83,7 @@ async def test_client(test_db):
     from app.database_design.database import get_db
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
     app.dependency_overrides.clear()
@@ -214,7 +214,7 @@ async def test_booth(test_db: AsyncSession, test_constituency: Constituency, tes
 
 _PG_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://netaai_app:netaai_password@postgres:5432/netaai_prod",
+    "postgresql+asyncpg://netaai_app:netaai_password@localhost:5432/netaai_prod",
 )
 
 
@@ -370,7 +370,7 @@ async def pg_test_client(pg_session: AsyncSession):
     from app.database_design.database import get_db
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
     app.dependency_overrides.clear()

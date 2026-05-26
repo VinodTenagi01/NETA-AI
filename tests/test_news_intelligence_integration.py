@@ -160,9 +160,9 @@ class TestListArticles:
     async def test_list_articles_no_token_forbidden(
         self, pg_test_client: AsyncClient
     ):
-        """Access without token returns 403."""
+        """Access without token returns 401 (missing credentials)."""
         response = await pg_test_client.get("/api/v1/news/articles")
-        assert response.status_code == 403
+        assert response.status_code == 401
 
 
 # ============================================================================
