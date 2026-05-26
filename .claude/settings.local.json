@@ -124,7 +124,29 @@
       "Bash(curl -s http://localhost:8000/api/openapi.json)",
       "Bash(curl -s -X POST http://localhost:8000/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@example.com\",\"password\":\"TestAdmin123!\"}')",
       "Bash(curl -s http://localhost:8000/api/v1/news/articles -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAxIiwiZW1haWwiOiJhZG1pbkB0ZXN0LmxvY2FsIiwicm9sZSI6InN1cGVyX2FkbWluIiwiZXhwIjoxNzc5NzgwMDU5LCJpYXQiOjE3Nzk3NzkxNTksInR5cGUiOiJhY2Nlc3MifQ.tuzKl-mJaXkg1tAGJj5ajWA3v6xxDN5S2vcfi-Qkiqo')",
-      "Bash(curl -s http://localhost:8000/api/v1/news/articles -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNDM0MGI1MjgtODBhZi00N2IyLWJmYmUtYzAxOWU2ZDIzODJiIiwiZW1haWwiOiJuZXdzYWRtaW5AdGVzdC5sb2NhbCIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImV4cCI6MTc3OTc4MDEzOSwiaWF0IjoxNzc5Nzc5MjM5LCJ0eXBlIjoiYWNjZXNzIn0.C1xfF4B9jgIQIvdCF0EqQtTEAQZmOigX-PfHe8MVq8E')"
+      "Bash(curl -s http://localhost:8000/api/v1/news/articles -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNDM0MGI1MjgtODBhZi00N2IyLWJmYmUtYzAxOWU2ZDIzODJiIiwiZW1haWwiOiJuZXdzYWRtaW5AdGVzdC5sb2NhbCIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImV4cCI6MTc3OTc4MDEzOSwiaWF0IjoxNzc5Nzc5MjM5LCJ0eXBlIjoiYWNjZXNzIn0.C1xfF4B9jgIQIvdCF0EqQtTEAQZmOigX-PfHe8MVq8E')",
+      "Bash(gh repo *)",
+      "PowerShell(gh repo *)",
+      "PowerShell(git ls-remote *)",
+      "Bash(git ls-remote *)",
+      "Bash(git fetch *)",
+      "Bash(git remote *)",
+      "Bash(git count-objects *)",
+      "Bash(git gc *)",
+      "PowerShell(Start-Sleep 6; $token = python -c \"from app.security_auth.utils import create_access_token; import uuid; print\\(create_access_token\\(uuid.uuid4\\(\\), 'test@test.com', 'super_admin'\\)\\)\"; $h = @{Authorization = \"Bearer $token\"}; try { $r = Invoke-RestMethod \"http://localhost:8000/api/v1/booths\" -Headers $h; \"Status: 200 OK | total=$\\($r.total\\) | by_risk=$\\($r.by_risk_level | ConvertTo-Json -Compress\\)\" } catch { \"Error: $_\" })",
+      "PowerShell($token = python -c \"from app.security_auth.utils import create_access_token; import uuid; print\\(create_access_token\\(uuid.uuid4\\(\\), 'test@test.com', 'super_admin'\\)\\)\"; Write-Host \"Token generated: $\\($token.Substring\\(0,30\\)\\)...\")",
+      "PowerShell($body = '{\"email\":\"tenagivinod@gmail.com\",\"password\":\"netaai@2025\"}'; try { $r = Invoke-RestMethod \"http://localhost:8000/api/auth/login\" -Method POST -ContentType \"application/json\" -Body $body; $token = $r.access_token; Write-Host \"Login OK | role=$\\($r.role\\)\"; $h = @{Authorization = \"Bearer $token\"}; $r2 = Invoke-RestMethod \"http://localhost:8000/api/v1/booths\" -Headers $h; \"Booths OK | total=$\\($r2.total\\) | risk_high=$\\($r2.by_risk_level.high\\)\" } catch { \"Error: $_\" })",
+      "PowerShell($body = '{\"email\":\"admin@example.com\",\"password\":\"TestAdmin123!\"}'; try { $r = Invoke-RestMethod \"http://localhost:8000/api/auth/login\" -Method POST -ContentType \"application/json\" -Body $body; $token = $r.access_token; Write-Host \"Login OK | role=$\\($r.role\\)\"; $h = @{Authorization = \"Bearer $token\"}; $r2 = Invoke-RestMethod \"http://localhost:8000/api/v1/booths\" -Headers $h; \"Booths OK | total=$\\($r2.total\\) | risk_high=$\\($r2.by_risk_level.high\\)\" } catch { \"Error: $_\" })",
+      "PowerShell($env:SECRET_KEY = \"dev-secret-key-change-in-production\"; $token = python -c \"import os; os.environ['SECRET_KEY']='dev-secret-key-change-in-production'; from app.security_auth.utils import create_access_token; import uuid; print\\(create_access_token\\(uuid.uuid4\\(\\), 'test@test.com', 'super_admin'\\)\\)\"; $h = @{Authorization = \"Bearer $token\"}; try { $r = Invoke-RestMethod \"http://localhost:8000/api/v1/booths\" -Headers $h; \"Booths OK | total=$\\($r.total\\) | by_risk=$\\($r.by_risk_level | ConvertTo-Json -Compress\\)\" } catch { \"Error: $_\" })",
+      "PowerShell($reg = '{\"full_name\":\"API Test\",\"email\":\"apitest_bm@test.local\",\"phone\":\"+919999999999\",\"password\":\"TestPass123!\",\"role\":\"super_admin\"}'; try { $r = Invoke-RestMethod \"http://localhost:8000/api/auth/register\" -Method POST -ContentType \"application/json\" -Body $reg; $token = $r.access_token; Write-Host \"Register OK\"; $h = @{Authorization = \"Bearer $token\"}; $booths = Invoke-RestMethod \"http://localhost:8000/api/v1/booths\" -Headers $h; \"GET /api/v1/booths | 200 OK | total=$\\($booths.total\\)\" } catch { \"Error: $_\" })",
+      "PowerShell(Invoke-RestMethod \"http://localhost:8000/health\" | ConvertTo-Json)",
+      "PowerShell(Invoke-RestMethod \"http://localhost:8000/api/health\" | ConvertTo-Json)",
+      "PowerShell($reg = '{\"full_name\":\"API Test\",\"email\":\"apitest.bm@gmail.com\",\"phone\":\"+919999999990\",\"password\":\"TestPass123!\",\"role\":\"super_admin\"}'; $r = Invoke-RestMethod \"http://localhost:8000/api/auth/register\" -Method POST -ContentType \"application/json\" -Body $reg -ErrorVariable e; if \\($e\\) { \"ERROR: $e\" } else { $r | ConvertTo-Json })",
+      "PowerShell(docker compose build *)",
+      "PowerShell(docker build *)",
+      "PowerShell(Write-Host \"Starting build...\"; $proc = Start-Process -FilePath \"docker\" -ArgumentList \"build\", \"-t\", \"netaai-api\", \".\" -Wait -PassThru -NoNewWindow; Write-Host \"Build exit code: $\\($proc.ExitCode\\)\")",
+      "PowerShell(docker compose up *)",
+      "PowerShell(docker cp app/booth_management/router.py neta_api:/app/app/booth_management/router.py; docker cp app/news_intelligence/router.py neta_api:/app/app/news_intelligence/router.py; Write-Host \"Files copied\"; docker restart neta_api; Write-Host \"Container restarted\")"
     ]
   }
 }
