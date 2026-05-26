@@ -1094,7 +1094,7 @@ if ($Session -eq "audit") {
             }
 
             Write-Host ""
-            Write-Host "  ?? PHASE 2 QUEUED:" -ForegroundColor Yellow
+            Write-Host "  ?? PHASE 2 QUEUED (Remaining):" -ForegroundColor Yellow
             foreach ($key in @("05-news-intelligence", "06-booth-management", "07-prediction-sentiment", "08-opposition-intelligence", "09-whatsapp-integration", "10-devops-deployment")) {
                 if ($auditData.sessions.PSObject.Properties.Name -contains $key) {
                     $item = $auditData.sessions.$key
