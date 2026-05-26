@@ -17,6 +17,9 @@ from celery.schedules import crontab
 # Initialize Celery app
 app = Celery(__name__)
 
+# Auto-discover tasks from app modules
+app.autodiscover_tasks(['app.whatsapp_integration'])
+
 # ============================================================================
 # Broker and Backend Configuration
 # ============================================================================

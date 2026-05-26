@@ -36,7 +36,7 @@ BEGIN
         SELECT 1 FROM information_schema.columns
         WHERE table_name = 'field_reports' AND column_name = 'updated_at'
     ) THEN
-        ALTER TABLE field_reports ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP;
+        ALTER TABLE field_reports ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
     END IF;
 END $$;
 
@@ -91,9 +91,9 @@ BEGIN
     END IF;
 END $$;
 
--- Add unique constraint
-ALTER TABLE escalations ADD CONSTRAINT uq_escalation_field_report
-    UNIQUE(field_report_id) WHERE field_report_id IS NOT NULL;
+-- Add partial unique index (PostgreSQL does not support WHERE on table-level UNIQUE)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_escalation_field_report
+    ON escalations(field_report_id) WHERE field_report_id IS NOT NULL;
 
 -- Add indexes for escalations
 CREATE INDEX IF NOT EXISTS idx_escalations_status_deadline
