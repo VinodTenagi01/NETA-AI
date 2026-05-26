@@ -286,15 +286,17 @@ class BoothService:
                 days_window=7,
             )
 
-            # Calculate new scores
+            # Calculate new scores (convert Decimal columns to float)
+            contact_rate_f = float(booth.contact_rate) if booth.contact_rate is not None else 0.0
+
             new_risk_score = self.calculator.calculate_risk_score(
-                booth.contact_rate,
+                contact_rate_f,
                 high_severity_count,
                 days_since_contact,
             )
 
             new_health_score = self.calculator.calculate_health_score(
-                booth.contact_rate,
+                contact_rate_f,
                 volunteer_coverage,
                 report_frequency,
             )
@@ -378,6 +380,12 @@ class BoothService:
             swing_booths=[self._booth_to_response(b) for b in swing_booths],
             under_resourced=[self._booth_to_response(b) for b in under_resourced],
             recommended_interventions=interventions,
+            summary={
+                "total_booths": len(booths),
+                "high_risk_count": len(high_risk_booths),
+                "swing_booth_count": len(swing_booths),
+                "under_resourced_count": len(under_resourced),
+            },
         )
 
     async def get_health_dashboard(
@@ -403,13 +411,13 @@ class BoothService:
         result = await db.execute(stmt)
         booths = result.unique().scalars().all()
 
-        # Count by health status
+        # Count by health status (mutually exclusive, covers all booths)
         healthy = sum(1 for b in booths if b.health_score >= self.calculator.HEALTH_HEALTHY)
+        critical = sum(1 for b in booths if b.health_score <= self.calculator.HEALTH_CRITICAL)
         degraded = sum(
             1 for b in booths
-            if self.calculator.HEALTH_DEGRADED <= b.health_score < self.calculator.HEALTH_HEALTHY
+            if self.calculator.HEALTH_CRITICAL < b.health_score < self.calculator.HEALTH_HEALTHY
         )
-        critical = sum(1 for b in booths if b.health_score <= self.calculator.HEALTH_CRITICAL)
 
         # Calculate averages
         avg_risk = sum(b.risk_score for b in booths) / len(booths) if booths else 0
@@ -623,31 +631,25 @@ class BoothService:
         stmt = select(
             func.sum(
                 case(
-                    [
-                        (Booth.risk_score >= self.calculator.RISK_HIGH, 1),
-                    ],
+                    (Booth.risk_score >= self.calculator.RISK_HIGH, 1),
                     else_=0,
                 )
             ).label("high"),
             func.sum(
                 case(
-                    [
-                        (
-                            and_(
-                                Booth.risk_score >= self.calculator.RISK_MEDIUM,
-                                Booth.risk_score < self.calculator.RISK_HIGH,
-                            ),
-                            1,
+                    (
+                        and_(
+                            Booth.risk_score >= self.calculator.RISK_MEDIUM,
+                            Booth.risk_score < self.calculator.RISK_HIGH,
                         ),
-                    ],
+                        1,
+                    ),
                     else_=0,
                 )
             ).label("medium"),
             func.sum(
                 case(
-                    [
-                        (Booth.risk_score < self.calculator.RISK_MEDIUM, 1),
-                    ],
+                    (Booth.risk_score < self.calculator.RISK_MEDIUM, 1),
                     else_=0,
                 )
             ).label("low"),
@@ -667,31 +669,25 @@ class BoothService:
         stmt = select(
             func.sum(
                 case(
-                    [
-                        (Booth.health_score >= self.calculator.HEALTH_HEALTHY, 1),
-                    ],
+                    (Booth.health_score >= self.calculator.HEALTH_HEALTHY, 1),
                     else_=0,
                 )
             ).label("healthy"),
             func.sum(
                 case(
-                    [
-                        (
-                            and_(
-                                Booth.health_score >= self.calculator.HEALTH_DEGRADED,
-                                Booth.health_score < self.calculator.HEALTH_HEALTHY,
-                            ),
-                            1,
+                    (
+                        and_(
+                            Booth.health_score >= self.calculator.HEALTH_DEGRADED,
+                            Booth.health_score < self.calculator.HEALTH_HEALTHY,
                         ),
-                    ],
+                        1,
+                    ),
                     else_=0,
                 )
             ).label("degraded"),
             func.sum(
                 case(
-                    [
-                        (Booth.health_score <= self.calculator.HEALTH_CRITICAL, 1),
-                    ],
+                    (Booth.health_score <= self.calculator.HEALTH_CRITICAL, 1),
                     else_=0,
                 )
             ).label("critical"),

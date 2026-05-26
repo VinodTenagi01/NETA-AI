@@ -14,6 +14,7 @@ from app.database_design.database import get_db
 from app.database_design.models import User
 from app.security_auth.dependencies import get_current_user, require_role
 from app.news_intelligence.service import NewsIntelligenceService
+from app.news_intelligence.exceptions import ClusterNotFound
 from app.news_intelligence.models import (
     ArticleFilters, FeedIngestRequest,
     ArticleResponse, ArticleListResponse,
@@ -185,7 +186,7 @@ async def get_cluster_details(
     articles = result.scalars().all()
 
     if not articles:
-        raise ValueError(f"Cluster {cluster_id} not found")
+        raise ClusterNotFound(cluster_id)
 
     # Get momentum
     momentum_data = await service.clusterer.get_cluster_momentum(db, cluster_id)
@@ -303,6 +304,7 @@ async def compare_sentiment(
     """
     from datetime import timedelta, datetime
     from sqlalchemy import select, func, and_, case
+    from app.database_design.models import NewsArticle
 
     cutoff_date = datetime.utcnow() - timedelta(days=days)
 

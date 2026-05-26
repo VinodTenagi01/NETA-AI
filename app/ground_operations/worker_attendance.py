@@ -58,7 +58,7 @@ class WorkerAttendanceService:
         await db.commit()
         await db.refresh(attendance)
 
-        return WorkerAttendanceResponse.from_attributes(attendance)
+        return WorkerAttendanceResponse.model_validate(attendance)
 
     async def check_out_worker(
         self, db: AsyncSession, user_id: UUID

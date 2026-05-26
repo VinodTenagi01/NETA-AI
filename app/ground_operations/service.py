@@ -42,6 +42,20 @@ SLA_MINUTES_BY_SEVERITY = {
 class FieldReportService:
     """Service for creating and managing field reports."""
 
+    async def _fetch_report_full(self, db: AsyncSession, report_id: UUID) -> Optional[FieldReport]:
+        """Fetch a report with all relationships eagerly loaded."""
+        stmt = (
+            select(FieldReport)
+            .options(
+                selectinload(FieldReport.booth),
+                selectinload(FieldReport.reporter),
+                selectinload(FieldReport.escalation),
+            )
+            .where(FieldReport.id == report_id)
+        )
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def create_report(
         self,
         db: AsyncSession,
@@ -81,9 +95,10 @@ class FieldReportService:
             escalation_id = escalation.id
 
         await db.commit()
-        await db.refresh(field_report)
 
-        return await self._report_to_response(db, field_report, escalation_id)
+        # Re-fetch with all relationships to avoid lazy-load errors
+        full_report = await self._fetch_report_full(db, field_report.id)
+        return await self._report_to_response(db, full_report, escalation_id)
 
     async def list_reports(
         self,
@@ -99,7 +114,11 @@ class FieldReportService:
         """List field reports with filters."""
         stmt = (
             select(FieldReport)
-            .options(selectinload(FieldReport.booth), selectinload(FieldReport.reporter))
+            .options(
+                selectinload(FieldReport.booth),
+                selectinload(FieldReport.reporter),
+                selectinload(FieldReport.escalation),
+            )
             .where(
                 FieldReport.created_at >= datetime.now(timezone.utc) - timedelta(days=days)
             )
@@ -158,13 +177,7 @@ class FieldReportService:
 
     async def get_report(self, db: AsyncSession, report_id: UUID) -> FieldReportResponse:
         """Get single field report."""
-        stmt = (
-            select(FieldReport)
-            .options(selectinload(FieldReport.booth), selectinload(FieldReport.reporter))
-            .where(FieldReport.id == report_id)
-        )
-        result = await db.execute(stmt)
-        report = result.scalar_one_or_none()
+        report = await self._fetch_report_full(db, report_id)
 
         if not report:
             raise ReportNotFoundException(f"Report {report_id} not found")
@@ -198,10 +211,11 @@ class FieldReportService:
             report.description = updates.description
 
         await db.commit()
-        await db.refresh(report)
 
-        escalation_id = report.escalation.id if report.escalation else None
-        return await self._report_to_response(db, report, escalation_id)
+        # Re-fetch with all relationships to avoid lazy-load errors
+        full_report = await self._fetch_report_full(db, report.id)
+        escalation_id = full_report.escalation.id if full_report.escalation else None
+        return await self._report_to_response(db, full_report, escalation_id)
 
     async def soft_delete_report(self, db: AsyncSession, report_id: UUID) -> None:
         """Soft delete field report (update updated_at)."""

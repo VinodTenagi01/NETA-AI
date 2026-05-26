@@ -266,7 +266,7 @@ class NarrativeResponse(BaseModel):
         description="RISING|STABLE|FADING",
     )
     article_count: int
-    last_updated: datetime
+    last_updated: Optional[datetime] = None
     sentiment: str
     avg_impact: float
     recommendation: str

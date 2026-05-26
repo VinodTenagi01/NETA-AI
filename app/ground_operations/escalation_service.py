@@ -68,10 +68,10 @@ class EscalationService:
         if assigned_to:
             stmt = stmt.where(Escalation.assigned_to == assigned_to)
 
-        # Count total
-        count_stmt = select(func.count()).select_from(Escalation).where(
-            stmt.whereclause
-        )
+        # Count total (guard against None whereclause producing WHERE NULL)
+        count_stmt = select(func.count()).select_from(Escalation)
+        if stmt.whereclause is not None:
+            count_stmt = count_stmt.where(stmt.whereclause)
         count_result = await db.execute(count_stmt)
         total = count_result.scalar()
 

@@ -189,9 +189,9 @@ class NewsIntelligenceService:
         # Compute overall statistics
         all_articles_stmt = select(
             func.avg(NewsArticle.sentiment_polarity),
-            func.sum(case([(NewsArticle.sentiment_polarity > 0.3, 1)], else_=0)),
-            func.sum(case([(and_(NewsArticle.sentiment_polarity >= -0.3, NewsArticle.sentiment_polarity <= 0.3), 1)], else_=0)),
-            func.sum(case([(NewsArticle.sentiment_polarity < -0.3, 1)], else_=0)),
+            func.sum(case((NewsArticle.sentiment_polarity > 0.3, 1), else_=0)),
+            func.sum(case((and_(NewsArticle.sentiment_polarity >= -0.3, NewsArticle.sentiment_polarity <= 0.3), 1), else_=0)),
+            func.sum(case((NewsArticle.sentiment_polarity < -0.3, 1), else_=0)),
         ).where(NewsArticle.ingested_at >= cutoff_date)
 
         stats_result = await db.execute(all_articles_stmt)
@@ -300,8 +300,9 @@ class NewsIntelligenceService:
         """Monitor feed source health and ingestion status."""
         from app.news_intelligence.feed_ingester import FEED_CATALOGUE
 
+        from datetime import timezone as _tz
         sources = []
-        now = datetime.utcnow()
+        now = datetime.now(_tz.utc)
 
         for source_name, config in FEED_CATALOGUE.items():
             # Get last ingestion
@@ -464,9 +465,9 @@ class NewsIntelligenceService:
     async def _count_by_sentiment(self, db: AsyncSession, cutoff_date: datetime) -> dict:
         """Count articles by sentiment category."""
         stmt = select(
-            func.sum(case([(NewsArticle.sentiment_polarity > 0.3, 1)], else_=0)).label("positive"),
-            func.sum(case([(and_(NewsArticle.sentiment_polarity >= -0.3, NewsArticle.sentiment_polarity <= 0.3), 1)], else_=0)).label("neutral"),
-            func.sum(case([(NewsArticle.sentiment_polarity < -0.3, 1)], else_=0)).label("negative"),
+            func.sum(case((NewsArticle.sentiment_polarity > 0.3, 1), else_=0)).label("positive"),
+            func.sum(case((and_(NewsArticle.sentiment_polarity >= -0.3, NewsArticle.sentiment_polarity <= 0.3), 1), else_=0)).label("neutral"),
+            func.sum(case((NewsArticle.sentiment_polarity < -0.3, 1), else_=0)).label("negative"),
         ).where(NewsArticle.ingested_at >= cutoff_date)
 
         result = await db.execute(stmt)
