@@ -13,7 +13,7 @@ from uuid import UUID
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database_design.models import Booth, FieldReport, User
+from app.database_design.models import Booth, FieldReport, NewsArticle, User
 from app.booth_management.risk_calculator import RiskCalculator
 from app.ground_operations.mood_analyzer import MoodAnalyzer
 from app.prediction_sentiment.win_probability import WinProbabilityCalculator
@@ -74,10 +74,10 @@ class PredictionService:
                 raise PredictionNotAvailable("No booths found for constituency")
 
             # Calculate average metrics across booths
-            booth_health_scores = [b.health_score for b in booths if b.health_score is not None]
-            contact_rates = [b.contact_rate for b in booths if b.contact_rate is not None]
+            booth_health_scores = [float(b.health_score) for b in booths if b.health_score is not None]
+            contact_rates = [float(b.contact_rate) for b in booths if b.contact_rate is not None]
             volunteer_coverage_list = []
-            risk_scores = [b.risk_score for b in booths if b.risk_score is not None]
+            risk_scores = [float(b.risk_score) for b in booths if b.risk_score is not None]
 
             if not booth_health_scores or not contact_rates:
                 raise PredictionNotAvailable("Insufficient booth data for prediction")
@@ -290,37 +290,39 @@ class PredictionService:
         constituency_id: UUID,
     ) -> float:
         """Get average voter sentiment for constituency from field reports."""
+        mood_map = {"POSITIVE": 0.7, "NEUTRAL": 0.0, "NEGATIVE": -0.7, "MIXED": 0.0}
         stmt = (
-            select(func.avg(FieldReport.mood))
+            select(FieldReport.voter_sentiment, func.count().label("cnt"))
             .select_from(FieldReport)
             .join(Booth)
             .where(Booth.constituency_id == constituency_id)
             .where(FieldReport.created_at >= datetime.now() - timedelta(days=30))
+            .group_by(FieldReport.voter_sentiment)
         )
         result = await db.execute(stmt)
-        avg_mood = result.scalar()
-
-        # Map mood (POSITIVE/NEGATIVE/NEUTRAL) to -1..1 scale
-        if avg_mood is None:
+        rows = result.fetchall()
+        if not rows:
             return 0.0
-
-        mood_map = {"POSITIVE": 0.7, "NEUTRAL": 0.0, "NEGATIVE": -0.7, "MIXED": 0.0}
-        return mood_map.get(str(avg_mood), 0.0)
+        total = sum(r.cnt for r in rows)
+        if total == 0:
+            return 0.0
+        weighted = sum(mood_map.get(r.voter_sentiment or "NEUTRAL", 0.0) * r.cnt for r in rows)
+        return weighted / total
 
     async def _get_news_sentiment_trend(
         self,
         db: AsyncSession,
         constituency_id: UUID,
     ) -> float:
-        """Get news sentiment trend from articles."""
+        """Get news sentiment trend from recent articles (0=negative, 1=positive, mapped to -1..1)."""
         stmt = (
-            select(func.avg(Article.sentiment_score))
-            .where(Article.created_at >= datetime.now() - timedelta(days=7))
+            select(func.avg(NewsArticle.sentiment_polarity))
+            .where(NewsArticle.ingested_at >= datetime.now() - timedelta(days=7))
         )
         result = await db.execute(stmt)
-        avg_sentiment = result.scalar()
+        avg_polarity = result.scalar()
 
-        return avg_sentiment if avg_sentiment else 0.0
+        return float(avg_polarity) if avg_polarity is not None else 0.0
 
     async def _estimate_volunteer_coverage(
         self,
