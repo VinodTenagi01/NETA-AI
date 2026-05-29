@@ -196,8 +196,9 @@ services:
   # ── Frontend (React Static Site) ─────────────────────────────────────────────
   # Render builds the frontend from source with VITE_API_URL pointing to the API.
   # The local frontend/dist/ is NOT used — Render builds its own copy.
-  - type: static
+  - type: web
     name: neta-frontend
+    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
