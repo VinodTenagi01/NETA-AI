@@ -650,11 +650,11 @@ async def opposition_intelligence(
                 "Monitor WhatsApp groups for narrative spread",
             ],
             "medium": [
-                "Standard monitoring — review opposition activity reports daily",
+                "Standard monitoring - review opposition activity reports daily",
                 "Prepare factual counter-responses for top 3 opposition narratives",
             ],
             "low": [
-                "Routine monitoring — no immediate action required",
+                "Routine monitoring - no immediate action required",
                 "Document any new opposition activities for weekly review",
             ],
         }
