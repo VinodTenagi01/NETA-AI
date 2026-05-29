@@ -15,7 +15,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database_design.database import get_db
-from app.database_design.models import Alert, Booth, FieldReport
+from app.database_design.models import Alert, Booth, CampaignZone, FieldReport, NewsArticle
 from app.security_auth.dependencies import get_current_user
 from app.database_design.models import User
 
@@ -119,6 +119,174 @@ async def _active_alert_count(db: AsyncSession) -> int:
 
 # ─── endpoints ────────────────────────────────────────────────────────────────
 
+async def _top_issues(db: AsyncSession, limit: int = 6) -> list[dict]:
+    """Count field reports by category in last 7 days → top issues list."""
+    try:
+        since = _today_utc() - timedelta(days=7)
+        q = await db.execute(
+            select(FieldReport.category, func.count().label("cnt"))
+            .where(FieldReport.reported_at >= since)
+            .group_by(FieldReport.category)
+            .order_by(func.count().desc())
+            .limit(limit)
+        )
+        rows = q.fetchall()
+        if not rows:
+            return []
+        max_count = rows[0][1] if rows else 1
+        return [
+            {
+                "slug": (row[0] or "other").lower().replace(" ", "_"),
+                "count": int(row[1]),
+                "trend": "rising" if int(row[1]) > max_count * 0.6 else "stable",
+            }
+            for row in rows
+        ]
+    except Exception:
+        return []
+
+
+async def _high_risk_booths(db: AsyncSession, limit: int = 5) -> list[dict]:
+    """Return top booths by risk score."""
+    try:
+        q = await db.execute(
+            select(
+                Booth.id, Booth.booth_number, Booth.booth_name, Booth.risk_score,
+            )
+            .order_by(Booth.risk_score.desc())
+            .limit(limit)
+        )
+        return [
+            {
+                "booth_id": str(r[0]),
+                "code": r[1],
+                "name": r[2] or f"Booth {r[1]}",
+                "risk_score": float(r[3]) / 100.0 if r[3] is not None else 0.5,
+                "risk_level": (
+                    "critical" if (r[3] or 0) >= 70
+                    else "high" if (r[3] or 0) >= 50
+                    else "medium"
+                ),
+            }
+            for r in q.fetchall()
+        ]
+    except Exception:
+        return []
+
+
+async def _news_sentiment_counts(db: AsyncSession) -> Optional[dict]:
+    """Count news articles by sentiment polarity in last 7 days."""
+    try:
+        since = _today_utc() - timedelta(days=7)
+        q = await db.execute(
+            select(
+                func.count().filter(NewsArticle.sentiment_polarity > 0.1).label("pos"),
+                func.count().filter(NewsArticle.sentiment_polarity < -0.1).label("neg"),
+                func.count().filter(
+                    NewsArticle.sentiment_polarity.between(-0.1, 0.1)
+                ).label("neu"),
+                func.count().label("total"),
+            ).where(NewsArticle.ingested_at >= since)
+        )
+        row = q.fetchone()
+        if row is None or row[3] == 0:
+            return None
+        return {
+            "positive_count": int(row[0]),
+            "negative_count": int(row[1]),
+            "neutral_count": int(row[2]),
+            "total": int(row[3]),
+        }
+    except Exception:
+        return None
+
+
+async def _intelligence_scores(db: AsyncSession) -> dict:
+    """Derive 4 intelligence scores (0–1) from available DB data."""
+    try:
+        # opposition momentum: fraction of OPPOSITION_ACTIVITY reports in last 48 h vs 7 d
+        since_48h = _today_utc() - timedelta(hours=48)
+        since_7d = _today_utc() - timedelta(days=7)
+
+        opp_48h_q = await db.execute(
+            select(func.count()).select_from(FieldReport).where(
+                and_(FieldReport.category == "OPPOSITION_ACTIVITY",
+                     FieldReport.reported_at >= since_48h)
+            )
+        )
+        opp_7d_q = await db.execute(
+            select(func.count()).select_from(FieldReport).where(
+                and_(FieldReport.category == "OPPOSITION_ACTIVITY",
+                     FieldReport.reported_at >= since_7d)
+            )
+        )
+        opp_48h = opp_48h_q.scalar() or 0
+        opp_7d = max(opp_7d_q.scalar() or 1, 1)
+        opp_momentum = round(min(1.0, opp_48h / opp_7d * 3.5), 3)
+
+        # anti-incumbency: fraction of NEGATIVE reports
+        neg_q = await db.execute(
+            select(func.count()).select_from(FieldReport).where(
+                and_(FieldReport.voter_sentiment == "NEGATIVE",
+                     FieldReport.reported_at >= since_7d)
+            )
+        )
+        total_q = await db.execute(
+            select(func.count()).select_from(FieldReport).where(
+                FieldReport.reported_at >= since_7d
+            )
+        )
+        neg = neg_q.scalar() or 0
+        total = max(total_q.scalar() or 1, 1)
+        anti_incumbency = round(neg / total, 3)
+
+        # voter engagement: fraction of POSITIVE reports
+        pos_q = await db.execute(
+            select(func.count()).select_from(FieldReport).where(
+                and_(FieldReport.voter_sentiment == "POSITIVE",
+                     FieldReport.reported_at >= since_7d)
+            )
+        )
+        pos = pos_q.scalar() or 0
+        voter_engagement = round(pos / total, 3)
+
+        # issue severity: fraction of HIGH or CRITICAL severity reports
+        severe_q = await db.execute(
+            select(func.count()).select_from(FieldReport).where(
+                and_(FieldReport.severity.in_(["HIGH", "CRITICAL"]),
+                     FieldReport.reported_at >= since_7d)
+            )
+        )
+        severe = severe_q.scalar() or 0
+        issue_severity = round(severe / total, 3)
+
+        return {
+            "opposition_momentum_score": opp_momentum,
+            "anti_incumbency_score": anti_incumbency,
+            "voter_engagement_score": voter_engagement,
+            "issue_severity_score": issue_severity,
+        }
+    except Exception:
+        return {
+            "opposition_momentum_score": 0.0,
+            "anti_incumbency_score": 0.0,
+            "voter_engagement_score": 0.0,
+            "issue_severity_score": 0.0,
+        }
+
+
+async def _reports_submitted_today(db: AsyncSession) -> int:
+    try:
+        q = await db.execute(
+            select(func.count()).select_from(FieldReport).where(
+                FieldReport.reported_at >= _today_utc()
+            )
+        )
+        return int(q.scalar() or 0)
+    except Exception:
+        return 0
+
+
 @router.get("/command-centre/overview")
 async def command_centre_overview(
     constituency_id: Optional[UUID] = Query(None),
@@ -130,6 +298,11 @@ async def command_centre_overview(
     avg_mood = await _avg_mood_today(db)
     mood_trend = await _mood_7d_trend(db)
     new_alerts = await _active_alert_count(db)
+    top_issues = await _top_issues(db)
+    high_risk_booths = await _high_risk_booths(db)
+    news_sentiment = await _news_sentiment_counts(db)
+    intel_scores = await _intelligence_scores(db)
+    reports_today = await _reports_submitted_today(db)
 
     return {
         "today": {
@@ -137,8 +310,13 @@ async def command_centre_overview(
             "total_booths": total,
             "avg_mood": avg_mood,
             "new_alerts": new_alerts,
+            "reports_submitted": reports_today,
         },
         "mood_7d_trend": mood_trend,
+        "top_issues": top_issues,
+        "high_risk_booths": high_risk_booths,
+        "news_sentiment": news_sentiment,
+        **intel_scores,
     }
 
 
@@ -292,32 +470,130 @@ async def opposition_intelligence(
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(get_current_user),
 ):
-    """Opposition activity from field reports categorised as OPPOSITION_ACTIVITY."""
+    """Opposition intelligence: sightings, rumours, and news derived from DB."""
+    since_7d = datetime.now(timezone.utc) - timedelta(days=7)
+    since_48h = datetime.now(timezone.utc) - timedelta(hours=48)
+
     try:
-        since = datetime.now(timezone.utc) - timedelta(hours=48)
-        q = await db.execute(
+        # Total sightings in last 7 days
+        total_q = await db.execute(
+            select(func.count(FieldReport.id))
+            .where(
+                and_(
+                    FieldReport.category == "OPPOSITION_ACTIVITY",
+                    FieldReport.reported_at >= since_7d,
+                )
+            )
+        )
+        total_sightings = int(total_q.scalar() or 0)
+
+        # Sightings by zone (FieldReport → Booth → CampaignZone)
+        zone_q = await db.execute(
+            select(CampaignZone.zone_name, func.count(FieldReport.id).label("cnt"))
+            .join(Booth, FieldReport.booth_id == Booth.id)
+            .join(CampaignZone, Booth.zone_id == CampaignZone.id)
+            .where(
+                and_(
+                    FieldReport.category == "OPPOSITION_ACTIVITY",
+                    FieldReport.reported_at >= since_7d,
+                )
+            )
+            .group_by(CampaignZone.zone_name)
+            .order_by(func.count(FieldReport.id).desc())
+        )
+        sightings_by_zone = [
+            {"zone": row[0], "sighting_count": int(row[1])}
+            for row in zone_q.fetchall()
+        ]
+
+        # Active rumours: recent OPPOSITION_ACTIVITY reports treated as rumours
+        rumour_q = await db.execute(
             select(FieldReport)
             .where(
                 and_(
                     FieldReport.category == "OPPOSITION_ACTIVITY",
-                    FieldReport.reported_at >= since,
+                    FieldReport.reported_at >= since_48h,
                 )
             )
             .order_by(FieldReport.reported_at.desc())
-            .limit(20)
+            .limit(10)
         )
-        items = [
+        active_rumours = [
             {
-                "id": str(r.id),
-                "description": r.description,
-                "severity": r.severity,
-                "reported_at": r.reported_at.isoformat() if r.reported_at else None,
+                "content": r.description,
+                "zone": None,
+                "report_count": 1,
+                "first_reported_at": r.reported_at.isoformat() if r.reported_at else None,
             }
-            for r in q.scalars().all()
+            for r in rumour_q.scalars().all()
         ]
-    except Exception:
-        items = []
-    return {"items": items, "total": len(items)}
+
+        # Opposition news: ANTI_INCUMBENT tone or negative polarity
+        news_q = await db.execute(
+            select(NewsArticle)
+            .where(
+                and_(
+                    NewsArticle.ingested_at >= since_7d,
+                    NewsArticle.political_tone == "ANTI_INCUMBENT",
+                )
+            )
+            .order_by(NewsArticle.ingested_at.desc())
+            .limit(10)
+        )
+        opposition_news = [
+            {
+                "headline": a.title,
+                "published_at": a.published_at.isoformat() if a.published_at else None,
+                "sentiment_score": float(a.sentiment_polarity) if a.sentiment_polarity is not None else None,
+            }
+            for a in news_q.scalars().all()
+        ]
+
+        # Derive momentum score (0–1) from sightings count and severity
+        momentum = min(1.0, total_sightings / 20.0) if total_sightings else 0.1
+        if sightings_by_zone:
+            momentum = min(1.0, momentum + 0.1 * len(sightings_by_zone) / 7)
+
+        risk_level = "critical" if momentum >= 0.7 else "high" if momentum >= 0.4 else "medium" if momentum >= 0.2 else "low"
+
+        recommendations = {
+            "critical": [
+                "Deploy counter-intelligence teams to all affected zones immediately",
+                "Brief all booth agents on opposition narratives and talking points",
+                "Activate VANI rapid response — counter rumours within 2 hours",
+            ],
+            "high": [
+                "Increase voter contact frequency in zones with high opposition activity",
+                "Brief field team on latest opposition promises and our counter-response",
+                "Monitor WhatsApp groups for narrative spread",
+            ],
+            "medium": [
+                "Standard monitoring — review opposition activity reports daily",
+                "Prepare factual counter-responses for top 3 opposition narratives",
+            ],
+            "low": [
+                "Routine monitoring — no immediate action required",
+                "Document any new opposition activities for weekly review",
+            ],
+        }
+
+    except Exception as exc:
+        logger.warning("opposition_intelligence: %s", exc)
+        total_sightings, sightings_by_zone, active_rumours, opposition_news = 0, [], [], []
+        momentum, risk_level = 0.1, "low"
+        recommendations = {"low": ["Routine monitoring"]}
+
+    return {
+        "total_sightings": total_sightings,
+        "sightings_by_zone": sightings_by_zone,
+        "active_rumours": active_rumours,
+        "opposition_news": opposition_news,
+        "opposition_momentum_score": round(momentum, 3),
+        "risk_level": risk_level,
+        "recommended_actions": recommendations.get(risk_level, []),
+        "items": active_rumours,
+        "total": len(active_rumours),
+    }
 
 
 @router.get("/candidate-brief")
