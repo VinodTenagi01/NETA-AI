@@ -292,7 +292,7 @@ async def get_mood_timeseries(
     )
 
 
-@router.get("/mood/trends", response_model=dict)
+@router.get("/mood/trends")
 async def get_mood_trends(
     constituency_id: UUID,
     days: int = Query(30, ge=1, le=90),

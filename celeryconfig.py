@@ -17,8 +17,8 @@ from celery.schedules import crontab
 # Initialize Celery app
 app = Celery(__name__)
 
-# Auto-discover tasks from app modules
-app.autodiscover_tasks(['app.whatsapp_integration'])
+# Auto-discover tasks from app modules (tasks live in celery_tasks.py, not tasks.py)
+app.autodiscover_tasks(['app.whatsapp_integration'], related_name='celery_tasks')
 
 # ============================================================================
 # Broker and Backend Configuration
@@ -28,6 +28,9 @@ app.conf.broker_url = os.getenv(
     'CELERY_BROKER_URL',
     'redis://:password@localhost:6379/0'
 )
+
+# Silence CPendingDeprecationWarning: retain retry-on-startup behavior for Celery 6.0
+app.conf.broker_connection_retry_on_startup = True
 
 app.conf.result_backend = os.getenv(
     'CELERY_RESULT_BACKEND',
@@ -253,11 +256,11 @@ def on_task_failure(sender, task_id, exception, args, kwargs, traceback, einfo, 
     )
 
 
-def on_task_success(sender, result, task_id, args, kwargs, **kwds):
+def on_task_success(sender, result, **kwds):
     """Handle task success."""
     import logging
     logger = logging.getLogger(__name__)
-    logger.debug(f"Task {task_id} succeeded with result: {result}")
+    logger.debug(f"Task succeeded with result: {result}")
 
 
 # Register signal handlers

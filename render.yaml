@@ -1,0 +1,215 @@
+# render.yaml — NETA.AI Infrastructure Blueprint
+#
+# Deploy with: Connect repo at render.com → New → Blueprint
+# All services defined here. Secrets marked sync:false must be filled in the dashboard.
+#
+# Services:
+#   neta-api           Web Service  (FastAPI, port $PORT)
+#   neta-celery-worker Background Worker
+#   neta-celery-beat   Background Worker (scheduler)
+#   neta-frontend      Static Site  (React build)
+#   neta-redis         Redis instance
+#
+# Databases (managed):
+#   neta-postgres      PostgreSQL 15 with PostGIS
+
+databases:
+  - name: neta-postgres
+    plan: starter          # $7/mo — upgrade to standard for production load
+    databaseName: netaai_prod
+    user: netaai_app
+    postgresMajorVersion: 15
+    region: oregon          # Change to your preferred region
+
+services:
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  - type: redis
+    name: neta-redis
+    plan: starter           # $10/mo — upgrade to standard for production load
+    maxmemoryPolicy: noeviction
+    region: oregon
+    ipAllowList: []
+
+  # ── API (FastAPI) ────────────────────────────────────────────────────────────
+  - type: web
+    name: neta-api
+    env: docker
+    dockerfilePath: ./Dockerfile.render
+    region: oregon
+    plan: standard          # $25/mo — required for background migrations + 2 workers
+    healthCheckPath: /api/health
+    envVars:
+      # ── Database (auto-injected from managed PostgreSQL) ───────────────────
+      - key: DATABASE_URL
+        fromDatabase:
+          name: neta-postgres
+          property: connectionString
+      - key: POSTGRES_USER
+        value: netaai_app
+      - key: POSTGRES_DB
+        value: netaai_prod
+
+      # ── Redis (auto-injected from Redis service) ───────────────────────────
+      - key: REDIS_URL
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+
+      # ── Security (fill in Render dashboard — never commit values) ──────────
+      - key: SECRET_KEY
+        sync: false           # Generate: python3 -c "import secrets; print(secrets.token_hex(32))"
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: neta-postgres
+          property: password
+
+      # ── App config ─────────────────────────────────────────────────────────
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: SERVICE_TYPE
+        value: web
+      - key: RUN_MIGRATIONS
+        value: "true"
+
+      # ── CORS — update after frontend deploys ───────────────────────────────
+      # Replace neta-frontend with your actual Render frontend URL or custom domain
+      - key: ALLOWED_ORIGINS
+        value: '["https://neta-frontend.onrender.com","https://app.netaai.in"]'
+
+      # ── WhatsApp (fill in dashboard when credentials obtained) ─────────────
+      - key: WHATSAPP_API_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_ID
+        sync: false
+      - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+        sync: false
+
+      # ── Telegram (fill in dashboard after bot setup) ───────────────────────
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: TELEGRAM_ENABLED
+        value: "false"     # Set to "true" after verifying bot works
+
+  # ── Celery Worker ────────────────────────────────────────────────────────────
+  - type: worker
+    name: neta-celery-worker
+    env: docker
+    dockerfilePath: ./Dockerfile.render
+    region: oregon
+    plan: standard
+    dockerCommand: celery -A celeryconfig worker --loglevel=info --queues=alerts,notifications,monitoring,maintenance,default --concurrency=2
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: neta-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: SECRET_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHONPATH
+        value: /app
+      - key: SERVICE_TYPE
+        value: worker
+      - key: RUN_MIGRATIONS
+        value: "false"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: TELEGRAM_ENABLED
+        value: "false"
+      - key: WHATSAPP_API_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_ID
+        sync: false
+
+  # ── Celery Beat (scheduler) ──────────────────────────────────────────────────
+  - type: worker
+    name: neta-celery-beat
+    env: docker
+    dockerfilePath: ./Dockerfile.render
+    region: oregon
+    plan: starter
+    dockerCommand: celery -A celeryconfig beat --loglevel=info --scheduler celery.beat:PersistentScheduler --schedule /tmp/celerybeat-schedule
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: neta-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: neta-redis
+          type: redis
+          property: connectionString
+      - key: SECRET_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHONPATH
+        value: /app
+      - key: SERVICE_TYPE
+        value: beat
+      - key: RUN_MIGRATIONS
+        value: "false"
+
+  # ── Frontend (React Static Site) ─────────────────────────────────────────────
+  # Render builds the frontend from source with VITE_API_URL pointing to the API.
+  # The local frontend/dist/ is NOT used — Render builds its own copy.
+  - type: static
+    name: neta-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    envVars:
+      # Set to your actual API URL after first deploy (e.g. https://neta-api.onrender.com)
+      - key: VITE_API_URL
+        sync: false

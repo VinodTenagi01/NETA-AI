@@ -93,20 +93,17 @@ async def get_current_user(
 
 def require_role(*allowed_roles: str) -> Callable[[User], User]:
     """Dependency factory for role-based access control.
-
-    Args:
-        allowed_roles: One or more allowed role strings
-
-    Returns:
-        Dependency function that checks user role
-
-    Example:
-        @router.get("/admin-only")
-        async def admin_only(user: User = Depends(require_role("super_admin"))):
-            return {"message": "Admin access granted"}
+    Accepts both require_role("a", "b") and require_role(["a", "b"]) call styles.
     """
+    # Flatten single-list-arg call: require_role(["a", "b"]) → roles = ("a", "b")
+    roles: tuple = (
+        tuple(allowed_roles[0])
+        if len(allowed_roles) == 1 and isinstance(allowed_roles[0], list)
+        else allowed_roles
+    )
+
     async def role_checker(user: User = Depends(get_current_user)) -> User:
-        if user.role not in allowed_roles:
+        if user.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Role '{user.role}' does not have access to this resource",

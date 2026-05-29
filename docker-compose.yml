@@ -44,7 +44,7 @@ services:
       CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
       CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-["http://localhost:5173"]}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-["http://localhost:5173","http://localhost:5175","http://localhost:5176","http://127.0.0.1:5175","http://127.0.0.1:5176"]}
       DEBUG: ${DEBUG:-false}
       ENVIRONMENT: ${ENVIRONMENT:-development}
       POSTGRES_USER: ${POSTGRES_USER:-netaai_app}

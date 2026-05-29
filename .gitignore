@@ -4,9 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-ENV/
 build/
 develop-eggs/
 dist/
@@ -45,7 +42,7 @@ env/
 ehthumbs.db
 Thumbs.db
 
-# Environment
+# Environment — NEVER commit secrets
 .env
 .env.local
 .env.*.local
@@ -54,6 +51,7 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+coverage.xml
 
 # Logs
 *.log
@@ -66,3 +64,28 @@ logs/
 
 # Redis
 dump.rdb
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.db
+celerybeat.pid
+
+# Frontend build output
+frontend/dist/
+frontend/node_modules/
+node_modules/
+dist/
+
+# Docker volumes (local dev)
+postgres_data/
+redis_data/
+
+# OCR / data processing cache
+data/ocr_cache/
+
+# Uploaded files
+uploads/
+
+# Root-level dev artifacts
+_rewrite_evidence.py
+package-lock.json

@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database_design.models import (
+    Alert,
     Booth,
     CampaignZone,
     Escalation,
@@ -267,6 +268,19 @@ class FieldReportService:
             sla_deadline=sla_deadline,
         )
         db.add(escalation)
+
+        # Create a live alert so the alerts/live feed shows this event
+        severity_label = "CRITICAL" if report.severity == 5 else "WARNING"
+        alert = Alert(
+            alert_type=report.category or "FIELD_REPORT",
+            severity=severity_label,
+            source_module="VAYU",
+            title=f"Severity {report.severity} report: {(report.description or '')[:80]}",
+            description=report.description,
+            acknowledged=False,
+        )
+        db.add(alert)
+
         await db.flush()
 
         return escalation

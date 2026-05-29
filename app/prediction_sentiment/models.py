@@ -238,6 +238,8 @@ class ConfidenceMetricsResponse(BaseModel):
 class ModelHealthResponse(BaseModel):
     """Historical model accuracy and reliability."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     model_type: str
     accuracy_last_week: Optional[float] = Field(None, ge=0.0, le=1.0)
     accuracy_last_month: Optional[float] = Field(None, ge=0.0, le=1.0)

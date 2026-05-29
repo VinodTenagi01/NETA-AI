@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     # WhatsApp
     WHATSAPP_API_TOKEN: str = ""
     WHATSAPP_PHONE_ID: str = ""
+    WHATSAPP_WEBHOOK_VERIFY_TOKEN: str = "neta_whatsapp_webhook_2024"
+
+    # Telegram
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_CHAT_ID: str = ""
+    TELEGRAM_ENABLED: bool = False
+
+    # Environment
+    ENVIRONMENT: str = "development"
 
     # Constituency constants (Serilingampally AC-52)
     CONSTITUENCY_AC_NUMBER: str = "52"

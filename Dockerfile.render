@@ -1,0 +1,69 @@
+# Dockerfile.render — Render-optimised image
+#
+# Differences from Dockerfile (local):
+#   1. Uses requirements-render.txt — omits torch/transformers/spacy (~2.3 GB saved)
+#   2. Uses render-entrypoint.sh — handles Render's DATABASE_URL format
+#   3. Listens on $PORT (Render-injected) instead of hardcoded 8000
+#
+# DO NOT USE for local Docker Compose — use Dockerfile instead.
+
+# ── Stage 1: Builder ─────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    libpq-dev \
+    libgdal-dev \
+    libproj-dev \
+    build-essential \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+COPY requirements-render.txt .
+RUN pip install --no-cache-dir -r requirements-render.txt
+
+# ── Stage 2: Runtime ─────────────────────────────────────────────────────────
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    libpq5 \
+    gdal-bin \
+    libgdal-dev \
+    proj-bin \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app/data && \
+    chown -R appuser:appuser /app
+
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY --chown=appuser:appuser app/ ./app/
+COPY --chown=appuser:appuser scripts/ ./scripts/
+COPY --chown=appuser:appuser render-entrypoint.sh .
+COPY --chown=appuser:appuser celeryconfig.py .
+COPY --chown=appuser:appuser pytest.ini .
+COPY --chown=appuser:appuser requirements-render.txt .
+
+USER appuser
+
+RUN chmod +x render-entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["./render-entrypoint.sh"]
+
+# $PORT is injected by Render at runtime. Workers override this via dockerCommand in render.yaml.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"]
