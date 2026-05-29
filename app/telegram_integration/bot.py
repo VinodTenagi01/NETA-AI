@@ -14,9 +14,9 @@ _TELEGRAM_API = "https://api.telegram.org/bot{token}/{method}"
 
 
 def _is_configured() -> tuple[bool, str, str]:
-    """Return (enabled, token, chat_id). Imported lazily to avoid circular imports."""
+    """Return (enabled, token, chat_id). Token presence is sufficient — TELEGRAM_ENABLED is informational only."""
     from app.config import settings
-    enabled = settings.TELEGRAM_ENABLED and bool(settings.TELEGRAM_BOT_TOKEN)
+    enabled = bool(settings.TELEGRAM_BOT_TOKEN)
     return enabled, settings.TELEGRAM_BOT_TOKEN, settings.TELEGRAM_CHAT_ID
 
 
