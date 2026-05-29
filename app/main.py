@@ -103,6 +103,24 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
     await _ensure_admin_user()
+
+    # Telegram startup validation
+    from app.config import settings
+    from app.telegram_integration import bot as _tg_bot
+    if settings.TELEGRAM_BOT_TOKEN:
+        _logger.info("Telegram: token loaded (***%s)", settings.TELEGRAM_BOT_TOKEN[-6:])
+        if settings.TELEGRAM_CHAT_ID:
+            _logger.info("Telegram: chat_id loaded (%s)", settings.TELEGRAM_CHAT_ID)
+        else:
+            _logger.warning("Telegram: TELEGRAM_CHAT_ID not set")
+        tg_me = await _tg_bot.get_me()
+        if tg_me.get("ok"):
+            _logger.info("Telegram: API reachable — bot @%s", tg_me["result"].get("username"))
+        else:
+            _logger.warning("Telegram: API unreachable — %s", tg_me.get("error"))
+    else:
+        _logger.info("Telegram: TELEGRAM_BOT_TOKEN not configured — notifications disabled")
+
     yield
     # Shutdown: dispose connection pool
     await engine.dispose()

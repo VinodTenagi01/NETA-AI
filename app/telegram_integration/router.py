@@ -3,6 +3,7 @@ Telegram Integration API Routes
 
 Endpoints:
   GET  /api/telegram/health          — service health + configuration status
+  GET  /api/telegram/test            — send a test message and confirm delivery
   POST /api/telegram/test-alert      — send a test message (admin only)
   POST /api/telegram/send-alert      — send a campaign alert (admin only)
   POST /api/telegram/webhook         — receive Telegram webhook updates (bot commands)
@@ -72,9 +73,62 @@ async def telegram_health():
     }
 
 
+@router.get(
+    "/test",
+    dependencies=[Depends(require_role("super_admin", "campaign_manager"))],
+)
+async def test_telegram_endpoint():
+    """
+    Send a test message to Telegram and confirm delivery end-to-end.
+    Verifies token validity, chat_id, and API reachability.
+    """
+    from app.config import settings
+    from datetime import timezone, timedelta
+
+    if not settings.TELEGRAM_BOT_TOKEN:
+        raise HTTPException(status_code=503, detail="TELEGRAM_BOT_TOKEN not configured")
+    if not settings.TELEGRAM_CHAT_ID:
+        raise HTTPException(status_code=503, detail="TELEGRAM_CHAT_ID not configured")
+
+    me_result = await bot.get_me()
+    if not me_result.get("ok"):
+        raise HTTPException(
+            status_code=502,
+            detail=f"Bot token invalid: {me_result.get('error') or me_result.get('description')}",
+        )
+    bot_username = me_result["result"].get("username")
+
+    ist = timezone(timedelta(hours=5, minutes=30))
+    from datetime import datetime
+    now_ist = datetime.now(ist).strftime("%d %b %Y %H:%M IST")
+
+    result = await bot.send_message(
+        text=(
+            "\U0001f9ea <b>NETA.AI Test Message</b>\n\n"
+            "Telegram integration verified successfully.\n\n"
+            f"✅ Token: valid\n"
+            f"✅ Chat ID: <code>{settings.TELEGRAM_CHAT_ID}</code>\n"
+            f"✅ Bot: @{bot_username}\n\n"
+            f"\U0001f552 {now_ist}"
+        ),
+        parse_mode="HTML",
+    )
+    if not result.get("ok"):
+        raise HTTPException(
+            status_code=502,
+            detail=f"Message delivery failed: {result.get('description') or result.get('error')}",
+        )
+    return {
+        "ok": True,
+        "bot_username": bot_username,
+        "chat_id": settings.TELEGRAM_CHAT_ID,
+        "message_id": result.get("result", {}).get("message_id"),
+    }
+
+
 @router.post(
     "/test-alert",
-    dependencies=[Depends(require_role(["super_admin", "campaign_manager"]))],
+    dependencies=[Depends(require_role("super_admin", "campaign_manager"))],
 )
 async def send_test_alert(request: TestAlertRequest):
     """
@@ -96,7 +150,7 @@ async def send_test_alert(request: TestAlertRequest):
 
 @router.post(
     "/send-alert",
-    dependencies=[Depends(require_role(["super_admin", "campaign_manager"]))],
+    dependencies=[Depends(require_role("super_admin", "campaign_manager"))],
 )
 async def send_campaign_alert(request: SendAlertRequest):
     """

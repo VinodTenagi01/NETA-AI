@@ -1,4 +1,5 @@
 """Field Report and Escalation services for ground operations."""
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
@@ -96,6 +97,26 @@ class FieldReportService:
             escalation_id = escalation.id
 
         await db.commit()
+
+        # Telegram notification — fire-and-forget, never blocks the response
+        try:
+            zone_name = None
+            if booth.zone_id:
+                zone = await db.get(CampaignZone, booth.zone_id)
+                if zone:
+                    zn = zone.zone_name or ""
+                    zone_name = zn[:-5] if zn.endswith(" Zone") else zn
+            asyncio.create_task(_tg_field_report(
+                booth_number=booth.booth_number,
+                booth_name=booth.booth_name or "",
+                zone_name=zone_name,
+                category=field_report.category,
+                sentiment=field_report.voter_sentiment,
+                severity=field_report.severity,
+                description=field_report.description,
+            ))
+        except Exception:
+            pass
 
         # Re-fetch with all relationships to avoid lazy-load errors
         full_report = await self._fetch_report_full(db, field_report.id)
@@ -283,6 +304,22 @@ class FieldReportService:
 
         await db.flush()
 
+        # Telegram escalation alert — fire-and-forget
+        try:
+            zone_name_for_tg = zone.zone_name.replace(" Zone", "") if zone else None
+            tg_severity = "CRITICAL" if report.severity == 5 else "HIGH"
+            asyncio.create_task(_tg_escalation_alert(
+                booth_number=booth.booth_number,
+                booth_name=booth.booth_name or "",
+                zone_name=zone_name_for_tg,
+                severity=tg_severity,
+                category=report.category,
+                description=report.description,
+                sla_minutes=sla_minutes,
+            ))
+        except Exception:
+            pass
+
         return escalation
 
     async def _report_to_response(
@@ -332,3 +369,59 @@ class FieldReportService:
             created_at=report.created_at,
             updated_at=report.updated_at,
         )
+
+
+# ── Telegram notification helpers (module-level, called via asyncio.create_task) ──
+
+async def _tg_field_report(
+    booth_number: str,
+    booth_name: str,
+    zone_name: Optional[str],
+    category: str,
+    sentiment: Optional[str],
+    severity: int,
+    description: str,
+) -> None:
+    """Send a Telegram notification for a newly submitted field report."""
+    try:
+        from app.telegram_integration.alert_sender import send_alert
+        sentiment_emoji = {"POSITIVE": "\U0001f7e2", "NEGATIVE": "\U0001f534", "NEUTRAL": "\U0001f7e1", "MIXED": "\U0001f7e1"}.get(sentiment or "", "")
+        await send_alert(
+            title=f"Field Report — Booth {booth_number}",
+            description=(
+                f"Category: {category}\n"
+                f"Sentiment: {sentiment_emoji} {sentiment or 'N/A'} | Severity: {severity}/5\n\n"
+                f"{description[:200]}"
+            ),
+            severity="HIGH" if severity >= 4 else "INFO",
+            alert_type="FIELD",
+            booth_name=f"{booth_number} — {booth_name}",
+            zone_name=zone_name,
+        )
+    except Exception:
+        pass
+
+
+async def _tg_escalation_alert(
+    booth_number: str,
+    booth_name: str,
+    zone_name: Optional[str],
+    severity: str,
+    category: str,
+    description: str,
+    sla_minutes: int,
+) -> None:
+    """Send a Telegram escalation alert for high/critical severity reports."""
+    try:
+        from app.telegram_integration.alert_sender import send_alert
+        await send_alert(
+            title=f"ESCALATED — {category.replace('_', ' ').title()}",
+            description=f"{description[:300]}\n\nSLA: {sla_minutes} minutes",
+            severity=severity,
+            alert_type="FIELD",
+            booth_name=f"{booth_number} — {booth_name}",
+            zone_name=zone_name,
+            action_required="Immediate review and response required",
+        )
+    except Exception:
+        pass

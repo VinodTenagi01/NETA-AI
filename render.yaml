@@ -92,7 +92,7 @@ services:
       - key: TELEGRAM_CHAT_ID
         sync: false
       - key: TELEGRAM_ENABLED
-        value: "false"
+        value: "true"
 
   # ── Celery Worker ────────────────────────────────────────────────────────────
   - type: worker
@@ -137,7 +137,7 @@ services:
       - key: TELEGRAM_CHAT_ID
         sync: false
       - key: TELEGRAM_ENABLED
-        value: "false"
+        value: "true"
       - key: WHATSAPP_API_TOKEN
         sync: false
       - key: WHATSAPP_PHONE_ID
