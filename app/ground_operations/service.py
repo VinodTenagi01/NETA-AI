@@ -293,9 +293,17 @@ class FieldReportService:
     ) -> FieldReportResponse:
         """Convert FieldReport ORM to Pydantic response."""
         booth_name = report.booth.booth_name if report.booth else None
+        booth_number = report.booth.booth_number if report.booth else None
         zone_id = report.booth.zone_id if report.booth else None
         reported_by_name = report.reporter.full_name if report.reporter else None
         escalation_status = None
+        zone_name = None
+
+        if zone_id:
+            zone = await db.get(CampaignZone, zone_id)
+            if zone:
+                zn = zone.zone_name or ""
+                zone_name = zn[:-5] if zn.endswith(" Zone") else zn
 
         if escalation_id:
             escalation = await db.get(Escalation, escalation_id)
@@ -306,7 +314,9 @@ class FieldReportService:
             id=report.id,
             booth_id=report.booth_id,
             booth_name=booth_name,
+            booth_number=booth_number,
             zone_id=zone_id,
+            zone_name=zone_name,
             category=report.category,
             description=report.description,
             severity=report.severity,

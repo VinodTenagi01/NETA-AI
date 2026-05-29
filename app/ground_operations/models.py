@@ -48,7 +48,9 @@ class FieldReportResponse(BaseModel):
     id: UUID
     booth_id: UUID
     booth_name: Optional[str] = None
+    booth_number: Optional[str] = None
     zone_id: Optional[UUID] = None
+    zone_name: Optional[str] = None
     category: str
     description: str
     severity: int

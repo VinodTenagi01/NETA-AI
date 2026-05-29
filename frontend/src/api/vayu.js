@@ -7,13 +7,27 @@ const CID = '11111111-0052-4000-8000-000000000001';
 export const submitReport = (payload) =>
   client.post('/v1/ground/reports', payload).then(r => r.data);
 
+const _MOOD_FROM_SENTIMENT = { POSITIVE: 4.5, NEUTRAL: 3.0, NEGATIVE: 1.5, MIXED: 3.0 };
+
 export const getReports = (page = 1, pageSize = 20, filters = {}) => {
   const limit = pageSize;
   const offset = (page - 1) * pageSize;
   const params = new URLSearchParams({ limit, offset, days: 7 });
   if (filters.zone)     params.set('zone_id', filters.zone);
   if (filters.booth_id) params.set('booth_id', filters.booth_id);
-  return client.get(`/v1/ground/reports?${params}`).then(r => r.data);
+  return client.get(`/v1/ground/reports?${params}`).then(r => {
+    const d = r.data;
+    const raw = d.reports || d.items || (Array.isArray(d) ? d : []);
+    const items = raw.map(rep => ({
+      ...rep,
+      booth_code: rep.booth_code || rep.booth_number || null,
+      mood_score: rep.mood_score ?? _MOOD_FROM_SENTIMENT[rep.voter_sentiment] ?? null,
+      is_escalated: rep.is_escalated ?? (rep.escalation_id != null),
+      zone: rep.zone || rep.zone_name || null,
+    }));
+    const total = d.total ?? items.length;
+    return { items, total, page, pages: Math.max(1, Math.ceil(total / pageSize)) };
+  });
 };
 
 // ── Booth-level data ───────────────────────────────────────────────────────────
