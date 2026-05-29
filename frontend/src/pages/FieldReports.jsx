@@ -493,28 +493,29 @@ export default function FieldReports() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [reportData, summaryData] = await Promise.allSettled([
-        getReports(pg, 20, {
-          zone: filterZone !== 'All' ? filterZone : undefined,
-          escalated: filterEscalated || undefined,
-        }),
-        getSentimentSummary(),
-      ]);
+      const reportData = await getReports(pg, 20, {
+        zone: filterZone !== 'All' ? filterZone : undefined,
+        escalated: filterEscalated || undefined,
+      });
 
-      if (reportData.status === 'fulfilled') {
-        const d = reportData.value;
-        const items = Array.isArray(d) ? { items: d, total: d.length, page: pg, pages: 1 }
-          : d.items ? d : { items: [], total: 0, page: pg, pages: 1 };
-        setData(items);
-        setIsLive(true);
-        setError(null);
-      } else {
-        setError('Could not load reports from server. Showing cached data.');
-      }
+      const d = reportData;
+      const items = Array.isArray(d) ? { items: d, total: d.length, page: pg, pages: 1 }
+        : d.items ? d : { items: [], total: 0, page: pg, pages: 1 };
+      setData(items);
+      setIsLive(true);
+      setError(null);
 
-      if (summaryData.status === 'fulfilled') {
-        setSummary(summaryData.value);
-      }
+      const liveItems = items.items || [];
+      const uniqueBooths = new Set(liveItems.map(r => r.booth_id).filter(Boolean)).size;
+      const moodVals = liveItems.map(r => r.mood_score).filter(v => v != null);
+      setSummary({
+        total_reports: items.total,
+        booths_covered: uniqueBooths,
+        escalation_count: liveItems.filter(r => r.is_escalated).length,
+        avg_mood: moodVals.length ? moodVals.reduce((a, b) => a + b, 0) / moodVals.length : null,
+      });
+    } catch {
+      setError('Could not load reports from server. Showing cached data.');
     } finally {
       setLoading(false);
       setRefreshing(false);
