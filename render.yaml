@@ -12,20 +12,23 @@
 #
 # Databases (managed):
 #   neta-postgres      PostgreSQL 15 with PostGIS
+#
+# NOTE: All services on free tier. neta-api spins down after 15 min inactivity.
+# neta-postgres expires after 90 days. Upgrade plans for production use.
 
 databases:
   - name: neta-postgres
-    plan: starter          # $7/mo — upgrade to standard for production load
+    plan: free
     databaseName: netaai_prod
     user: netaai_app
     postgresMajorVersion: 15
-    region: oregon          # Change to your preferred region
+    region: oregon
 
 services:
   # ── Redis ───────────────────────────────────────────────────────────────────
   - type: redis
     name: neta-redis
-    plan: starter           # $10/mo — upgrade to standard for production load
+    plan: free
     maxmemoryPolicy: noeviction
     region: oregon
     ipAllowList: []
@@ -36,10 +39,9 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.render
     region: oregon
-    plan: standard          # $25/mo — required for background migrations + 2 workers
+    plan: free
     healthCheckPath: /api/health
     envVars:
-      # ── Database (auto-injected from managed PostgreSQL) ───────────────────
       - key: DATABASE_URL
         fromDatabase:
           name: neta-postgres
@@ -48,8 +50,6 @@ services:
         value: netaai_app
       - key: POSTGRES_DB
         value: netaai_prod
-
-      # ── Redis (auto-injected from Redis service) ───────────────────────────
       - key: REDIS_URL
         fromService:
           name: neta-redis
@@ -65,16 +65,12 @@ services:
           name: neta-redis
           type: redis
           property: connectionString
-
-      # ── Security (fill in Render dashboard — never commit values) ──────────
       - key: SECRET_KEY
-        sync: false           # Generate: python3 -c "import secrets; print(secrets.token_hex(32))"
+        sync: false
       - key: POSTGRES_PASSWORD
         fromDatabase:
           name: neta-postgres
           property: password
-
-      # ── App config ─────────────────────────────────────────────────────────
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
@@ -83,27 +79,20 @@ services:
         value: web
       - key: RUN_MIGRATIONS
         value: "true"
-
-      # ── CORS — update after frontend deploys ───────────────────────────────
-      # Replace neta-frontend with your actual Render frontend URL or custom domain
       - key: ALLOWED_ORIGINS
         value: '["https://neta-frontend.onrender.com","https://app.netaai.in"]'
-
-      # ── WhatsApp (fill in dashboard when credentials obtained) ─────────────
       - key: WHATSAPP_API_TOKEN
         sync: false
       - key: WHATSAPP_PHONE_ID
         sync: false
       - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
         sync: false
-
-      # ── Telegram (fill in dashboard after bot setup) ───────────────────────
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID
         sync: false
       - key: TELEGRAM_ENABLED
-        value: "false"     # Set to "true" after verifying bot works
+        value: "false"
 
   # ── Celery Worker ────────────────────────────────────────────────────────────
   - type: worker
@@ -111,7 +100,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.render
     region: oregon
-    plan: standard
+    plan: free
     dockerCommand: celery -A celeryconfig worker --loglevel=info --queues=alerts,notifications,monitoring,maintenance,default --concurrency=2
     envVars:
       - key: DATABASE_URL
@@ -160,7 +149,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile.render
     region: oregon
-    plan: starter
+    plan: free
     dockerCommand: celery -A celeryconfig beat --loglevel=info --scheduler celery.beat:PersistentScheduler --schedule /tmp/celerybeat-schedule
     envVars:
       - key: DATABASE_URL
@@ -194,8 +183,6 @@ services:
         value: "false"
 
   # ── Frontend (React Static Site) ─────────────────────────────────────────────
-  # Render builds the frontend from source with VITE_API_URL pointing to the API.
-  # The local frontend/dist/ is NOT used — Render builds its own copy.
   - type: web
     name: neta-frontend
     env: static
@@ -211,6 +198,5 @@ services:
         name: Cache-Control
         value: public, max-age=31536000, immutable
     envVars:
-      # Set to your actual API URL after first deploy (e.g. https://neta-api.onrender.com)
       - key: VITE_API_URL
         sync: false
