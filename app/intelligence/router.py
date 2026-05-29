@@ -250,10 +250,10 @@ async def _intelligence_scores(db: AsyncSession) -> dict:
         pos = pos_q.scalar() or 0
         voter_engagement = round(pos / total, 3)
 
-        # issue severity: fraction of HIGH or CRITICAL severity reports
+        # issue severity: fraction of high/critical severity reports (severity 4 or 5 on 1–5 scale)
         severe_q = await db.execute(
             select(func.count()).select_from(FieldReport).where(
-                and_(FieldReport.severity.in_(["HIGH", "CRITICAL"]),
+                and_(FieldReport.severity >= 4,
                      FieldReport.reported_at >= since_7d)
             )
         )
@@ -426,28 +426,110 @@ async def booths_heatmap(
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(get_current_user),
 ):
-    """Booth heatmap: risk and health scores."""
+    """Booth heatmap with full fields required by the Booth Management page."""
+    _sentiment_value = {"POSITIVE": 4.5, "NEUTRAL": 3.0, "NEGATIVE": 1.5, "MIXED": 3.0}
     try:
-        q = await db.execute(
+        since_7d = _today_utc() - timedelta(days=7)
+        since_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+
+        booth_q = await db.execute(
             select(
-                Booth.id, Booth.name, Booth.booth_number,
-                Booth.health_score, Booth.risk_score,
-                Booth.contact_rate, Booth.swing_booth,
-            ).limit(200)
+                Booth.id,
+                Booth.booth_number,
+                Booth.booth_name,
+                Booth.health_score,
+                Booth.risk_score,
+                Booth.total_voters,
+                CampaignZone.zone_name,
+            )
+            .outerjoin(CampaignZone, Booth.zone_id == CampaignZone.id)
+            .order_by(Booth.booth_number)
         )
-        items = [
-            {
-                "id": str(b[0]),
-                "name": b[1],
-                "booth_number": b[2],
-                "health_score": float(b[3]) if b[3] is not None else 50.0,
-                "risk_score": float(b[4]) if b[4] is not None else 50.0,
-                "contact_rate": float(b[5]) if b[5] is not None else 0.0,
-                "is_swing": bool(b[6]),
-            }
-            for b in q.fetchall()
-        ]
-    except Exception:
+        booth_rows = booth_q.fetchall()
+
+        # Report counts per booth (last 7d)
+        count_q = await db.execute(
+            select(FieldReport.booth_id, func.count().label("cnt"))
+            .where(FieldReport.reported_at >= since_7d)
+            .group_by(FieldReport.booth_id)
+        )
+        report_counts: dict[str, int] = {str(r[0]): int(r[1]) for r in count_q.fetchall()}
+
+        # Sentiment distribution per booth (last 7d) for avg_mood calculation
+        sentiment_q = await db.execute(
+            select(FieldReport.booth_id, FieldReport.voter_sentiment, func.count().label("cnt"))
+            .where(
+                and_(
+                    FieldReport.reported_at >= since_7d,
+                    FieldReport.voter_sentiment.isnot(None),
+                )
+            )
+            .group_by(FieldReport.booth_id, FieldReport.voter_sentiment)
+        )
+        sentiment_by_booth: dict[str, dict] = {}
+        for booth_id, sentiment, cnt in sentiment_q.fetchall():
+            sentiment_by_booth.setdefault(str(booth_id), {})[sentiment] = int(cnt)
+
+        # Booths with at least one report in last 24h → covered
+        covered_q = await db.execute(
+            select(FieldReport.booth_id.distinct())
+            .where(FieldReport.reported_at >= since_24h)
+        )
+        covered_ids: set[str] = {str(r[0]) for r in covered_q.fetchall()}
+
+        items = []
+        for row in booth_rows:
+            bid = str(row[0])
+            health = float(row[3]) if row[3] is not None else 50.0
+            risk = float(row[4]) if row[4] is not None else 50.0
+
+            if health >= 65 and risk <= 35:
+                status = "fortress"
+            elif risk >= 65 or health <= 35:
+                status = "hostile"
+            else:
+                status = "swing"
+
+            if risk >= 70:
+                risk_level = "critical"
+            elif risk >= 50:
+                risk_level = "high"
+            elif risk >= 30:
+                risk_level = "medium"
+            else:
+                risk_level = "low"
+
+            booth_sentiments = sentiment_by_booth.get(bid, {})
+            if booth_sentiments:
+                total_s = sum(booth_sentiments.values())
+                avg_mood = round(
+                    sum(_sentiment_value.get(s, 3.0) * c for s, c in booth_sentiments.items()) / total_s, 2
+                )
+            else:
+                avg_mood = None
+
+            zone_name = row[6]
+            if zone_name and zone_name.endswith(" Zone"):
+                zone_name = zone_name[:-5]
+
+            items.append({
+                "booth_id": bid,
+                "code": row[1],
+                "name": row[2] or f"Booth {row[1]}",
+                "zone": zone_name,
+                "status": status,
+                "risk_level": risk_level,
+                "risk_score": round(risk / 100.0, 3),
+                "is_covered": bid in covered_ids,
+                "avg_mood": avg_mood,
+                "report_count_7d": report_counts.get(bid, 0),
+                "total_voters": int(row[5]) if row[5] is not None else 0,
+                "top_issue": None,
+                "opposition_activity": None,
+            })
+
+    except Exception as exc:
+        logger.warning("booths_heatmap: %s", exc)
         items = []
     return {"booths": items, "total": len(items)}
 
