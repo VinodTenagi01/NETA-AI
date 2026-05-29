@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, MapPin, Activity, Map, FileText, ShieldAlert,
   LogOut, User, Newspaper, ClipboardList, Settings, KeyRound, X, Eye, EyeOff, CheckCircle, AlertCircle,
-  Search, Table2, Users, Database, Upload,
+  Search, Table2, Users, Database, Upload, MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../store/AuthContext';
 import { candidate, constituency } from '../data/mockData';
@@ -40,6 +40,7 @@ const navItems = [
       { to: '/booth-intelligence',        label: 'Booth Raw Data',      Icon: Table2 },
       { to: '/data-sources',              label: 'Data Sources',        Icon: Database },
       { to: '/voter-roll-upload',         label: 'Voter Roll Upload',   Icon: Upload },
+      { to: '/telegram-alerts',           label: 'Telegram Alerts',     Icon: MessageSquare },
     ],
   },
 ];

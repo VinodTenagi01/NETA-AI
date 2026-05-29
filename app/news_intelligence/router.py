@@ -416,3 +416,104 @@ async def get_ingest_status(
         progress="100%",
         result={"articles_ingested": 42},
     )
+
+
+# ============================================================================
+# 13. News Sources Registry
+# ============================================================================
+
+@router.get("/sources")
+async def list_news_sources(
+    is_active: Optional[bool] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Return the configured RSS feed catalogue as a list of source objects."""
+    from app.news_intelligence.feed_ingester import FEED_CATALOGUE
+    from sqlalchemy import func, select
+    from app.database_design.models import NewsArticle
+    from datetime import datetime, timedelta, timezone
+
+    since = datetime.now(timezone.utc) - timedelta(days=7)
+
+    # Get article counts per source for last 7 days
+    q = await db.execute(
+        select(NewsArticle.feed_source, func.count(NewsArticle.id))
+        .where(NewsArticle.ingested_at >= since)
+        .group_by(NewsArticle.feed_source)
+    )
+    counts = {row[0]: row[1] for row in q.fetchall()}
+
+    items = []
+    for i, (name, cfg) in enumerate(FEED_CATALOGUE.items()):
+        active = True
+        if is_active is not None and active != is_active:
+            continue
+        items.append({
+            "id": str(i + 1),
+            "name": name,
+            "url": cfg["url"],
+            "tier": cfg["tier"],
+            "language": cfg["language"],
+            "is_active": active,
+            "poll_interval_minutes": 120,
+            "articles_7d": counts.get(name, 0),
+        })
+
+    return {"items": items, "total": len(items)}
+
+
+# ============================================================================
+# 14. Ingestion Logs
+# ============================================================================
+
+@router.get("/ingestion/logs")
+async def ingestion_logs(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("super_admin", "data_analyst")),
+):
+    """Return recent ingestion activity per feed source as log entries."""
+    from sqlalchemy import func, select, desc
+    from app.database_design.models import NewsArticle
+    from datetime import datetime, timedelta, timezone
+
+    since = datetime.now(timezone.utc) - timedelta(days=7)
+
+    q = await db.execute(
+        select(
+            NewsArticle.feed_source,
+            func.count(NewsArticle.id).label("total"),
+            func.max(NewsArticle.ingested_at).label("last_at"),
+            func.min(NewsArticle.ingested_at).label("first_at"),
+        )
+        .where(NewsArticle.ingested_at >= since)
+        .group_by(NewsArticle.feed_source)
+        .order_by(desc(func.max(NewsArticle.ingested_at)))
+    )
+    rows = q.fetchall()
+
+    items = [
+        {
+            "id": str(i),
+            "source": row[0],
+            "source_type": "rss",
+            "status": "completed",
+            "records_processed": int(row[1]),
+            "records_failed": 0,
+            "records_skipped": 0,
+            "started_at": row[3].isoformat() if row[3] else None,
+            "completed_at": row[2].isoformat() if row[2] else None,
+        }
+        for i, row in enumerate(rows, start=1)
+    ]
+
+    total = len(items)
+    start = (page - 1) * page_size
+    return {
+        "items": items[start:start + page_size],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+    }

@@ -6,7 +6,7 @@ Orchestrates FeedIngester, NLPService, and NarrativeClusterer.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -405,7 +405,10 @@ class NewsIntelligenceService:
                 orm_article.entity_tags = entities
 
                 # Impact scoring
-                hours_since_pub = (datetime.utcnow() - orm_article.published_at).total_seconds() / 3600
+                pub = orm_article.published_at
+                if pub.tzinfo is None:
+                    pub = pub.replace(tzinfo=timezone.utc)
+                hours_since_pub = (datetime.now(timezone.utc) - pub).total_seconds() / 3600
                 orm_article.impact_score = self.nlp_service.compute_impact_score(
                     sentiment_polarity=orm_article.sentiment_polarity,
                     feed_tier=orm_article.feed_tier,

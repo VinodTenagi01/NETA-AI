@@ -8,6 +8,7 @@ import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Query, Path, Depends, HTTPException, status
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database_design.database import get_db
@@ -361,16 +362,18 @@ async def get_notification_preferences(
         # Query user preferences (simulated)
         # user = db.query(User).filter(User.id == current_user["user_id"]).first()
 
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
         return NotificationPreferences(
-            user_id=UUID(current_user.get("user_id")),
-            whatsapp_number="+91XXXXXXXXXX",
-            whatsapp_verified=True,
-            whatsapp_verified_at="2026-05-24T10:00:00Z",
-            channels={"whatsapp": True, "email": False, "sms": False, "push": False},
+            user_id=current_user.id,
+            whatsapp_number=None,
+            whatsapp_verified=False,
+            whatsapp_verified_at=None,
+            channels={"whatsapp": False, "email": False, "sms": False, "push": False},
             alert_severity_min="MEDIUM",
             alert_types=["DIVERGENCE", "SEVERITY", "MOMENTUM", "ACTIVITY"],
-            created_at="2026-05-20T10:00:00Z",
-            updated_at="2026-05-24T10:00:00Z",
+            created_at=now,
+            updated_at=now,
         )
 
     except Exception as e:
@@ -414,18 +417,69 @@ async def update_notification_preferences(
         # db.add(user)
         # await db.commit()
 
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
         return NotificationPreferences(
-            user_id=UUID(current_user.get("user_id")),
+            user_id=current_user.id,
             channels=request.channels,
             alert_severity_min=request.alert_severity_min,
             alert_types=request.alert_types,
-            created_at="2026-05-20T10:00:00Z",
-            updated_at="2026-05-24T15:30:00Z",
+            created_at=now,
+            updated_at=now,
         )
 
     except Exception as e:
         logger.error(f"Error updating preferences: {e}")
         raise NotificationPreferenceError()
+
+
+# ============================================================================
+# Meta Webhook — delivery receipts and inbound messages
+# ============================================================================
+
+@router.get(
+    "/webhook",
+    status_code=status.HTTP_200_OK,
+    summary="Meta webhook verification challenge",
+    include_in_schema=False,
+)
+async def webhook_verify(
+    hub_mode: str = Query(None, alias="hub.mode"),
+    hub_verify_token: str = Query(None, alias="hub.verify_token"),
+    hub_challenge: str = Query(None, alias="hub.challenge"),
+):
+    """Meta calls this URL to verify the webhook during setup."""
+    from app.config import settings
+    if hub_mode == "subscribe" and hub_verify_token == settings.WHATSAPP_WEBHOOK_VERIFY_TOKEN:
+        return PlainTextResponse(content=str(hub_challenge))
+    raise HTTPException(status_code=403, detail="Verification failed")
+
+
+@router.post(
+    "/webhook",
+    status_code=status.HTTP_200_OK,
+    summary="Meta webhook — receive delivery receipts",
+    include_in_schema=False,
+)
+async def webhook_receive(payload: dict):
+    """
+    Receive delivery status updates from Meta Cloud API.
+    Payload contains 'statuses' (delivered/read/failed) for sent messages.
+    Meta requires a 200 response within 20s; log and return immediately.
+    """
+    try:
+        entries = payload.get("entry", [])
+        for entry in entries:
+            for change in entry.get("changes", []):
+                value = change.get("value", {})
+                for status_obj in value.get("statuses", []):
+                    msg_id = status_obj.get("id")
+                    status_val = status_obj.get("status")
+                    ts = status_obj.get("timestamp")
+                    logger.info("WA delivery: msg=%s status=%s ts=%s", msg_id, status_val, ts)
+    except Exception as exc:
+        logger.warning("webhook_receive parse error: %s", exc)
+    return {"ok": True}
 
 
 # ============================================================================
@@ -440,11 +494,13 @@ async def update_notification_preferences(
 )
 async def health_check():
     """Check WhatsApp integration service health."""
+    from app.config import settings
+    wa_configured = bool(settings.WHATSAPP_API_TOKEN and settings.WHATSAPP_PHONE_ID)
     return HealthCheckResponse(
         status="healthy",
         service="whatsapp-integration",
         version="1.0.0",
         celery_worker_ready=True,
         redis_connected=True,
-        whatsapp_api_configured=True,
+        whatsapp_api_configured=wa_configured,
     )

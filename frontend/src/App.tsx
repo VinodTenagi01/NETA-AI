@@ -17,6 +17,7 @@ const BoothIntelligence      = lazy(() => import('./pages/BoothIntelligence'));
 const ConstituencyDemographics = lazy(() => import('./pages/ConstituencyDemographics'));
 const DataSources            = lazy(() => import('./pages/DataSources'));
 const VoterRollUpload        = lazy(() => import('./pages/VoterRollUpload'));
+const TelegramAlerts         = lazy(() => import('./pages/TelegramAlerts'));
 
 function NotFound() {
   return (
@@ -99,6 +100,7 @@ export default function App() {
                   <Route path="/constituency-demographics"    element={<ConstituencyDemographics />} />
                   <Route path="/data-sources"                 element={<DataSources />} />
                   <Route path="/voter-roll-upload"            element={<VoterRollUpload />} />
+                  <Route path="/telegram-alerts"              element={<TelegramAlerts />} />
                   <Route path="*"                             element={<NotFound />} />
                 </Routes>
               </Suspense>

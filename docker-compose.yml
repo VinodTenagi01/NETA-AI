@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgis/postgis:15-3.3-alpine
@@ -50,6 +48,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-netaai_app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-netaai_password}
       POSTGRES_DB: ${POSTGRES_DB:-netaai_prod}
+      WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
+      WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID:-}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:-neta_whatsapp_webhook_2024}
     ports:
       - "8000:8000"
     depends_on:
@@ -59,6 +60,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     volumes:
+      - ./app:/app/app:ro
       - ./data:/app/data:ro
       - ./entrypoint.sh:/app/entrypoint.sh:ro
     healthcheck:
@@ -83,6 +85,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-netaai_app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-netaai_password}
       POSTGRES_DB: ${POSTGRES_DB:-netaai_prod}
+      WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
+      WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID:-}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:-neta_whatsapp_webhook_2024}
       PYTHONPATH: /app
     depends_on:
       postgres:
@@ -91,6 +96,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     volumes:
+      - ./app:/app/app:ro
       - ./entrypoint.sh:/app/entrypoint.sh:ro
       - ./celeryconfig.py:/app/celeryconfig.py:ro
     healthcheck:
@@ -124,6 +130,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     volumes:
+      - ./app:/app/app:ro
       - ./entrypoint.sh:/app/entrypoint.sh:ro
       - ./celeryconfig.py:/app/celeryconfig.py:ro
     healthcheck:

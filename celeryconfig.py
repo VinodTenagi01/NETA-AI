@@ -18,7 +18,10 @@ from celery.schedules import crontab
 app = Celery(__name__)
 
 # Auto-discover tasks from app modules (tasks live in celery_tasks.py, not tasks.py)
-app.autodiscover_tasks(['app.whatsapp_integration'], related_name='celery_tasks')
+app.autodiscover_tasks(
+    ['app.whatsapp_integration', 'app.news_intelligence'],
+    related_name='celery_tasks',
+)
 
 # ============================================================================
 # Broker and Backend Configuration
@@ -124,6 +127,12 @@ app.conf.task_routes = {
         'queue': 'maintenance',
         'priority': 0,
     },
+
+    # News ingestion (default queue)
+    'app.news_intelligence.celery_tasks.scheduled_news_ingest': {
+        'queue': 'default',
+        'priority': 3,
+    },
 }
 
 # ============================================================================
@@ -148,6 +157,16 @@ app.conf.beat_schedule = {
         'options': {
             'queue': 'maintenance',
             'priority': 0,
+        }
+    },
+
+    # Ingest news feeds every 2 hours
+    'scheduled-news-ingest': {
+        'task': 'app.news_intelligence.celery_tasks.scheduled_news_ingest',
+        'schedule': crontab(minute=0, hour='*/2'),
+        'options': {
+            'queue': 'default',
+            'priority': 3,
         }
     },
 }

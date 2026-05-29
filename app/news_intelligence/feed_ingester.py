@@ -23,18 +23,17 @@ logger = logging.getLogger(__name__)
 # Feed catalogue with tier weights
 FEED_CATALOGUE = {
     # Tier 1: Mainstream English
-    "The Hindu": {"url": "https://www.thehindu.com/news/national/telangana/feed", "tier": 1, "language": "en"},
-    "NDTV": {"url": "https://www.ndtv.com/telangana/feed", "tier": 1, "language": "en"},
-    # Tier 1: Mainstream Telugu
-    "Sakshi": {"url": "https://www.sakshi.com/feeds/category/politics", "tier": 1, "language": "te"},
-    "Eenadu": {"url": "https://www.eenadu.net/feeds/politics", "tier": 1, "language": "te"},
-    # Tier 2: Local/Hyperlocal
-    "Deccan Chronicle": {"url": "https://www.deccanchronicle.com/feeds/hyderabad", "tier": 2, "language": "en"},
-    "Namaste Telangana": {"url": "https://www.namastetelangana.com/feeds/politics", "tier": 2, "language": "te"},
-    "V6 News": {"url": "https://www.v6news.in/feeds/telangana", "tier": 2, "language": "te"},
-    # Tier 3: Niche/Community
-    "Hans India": {"url": "https://www.thehansindia.com/feeds/hyderabad", "tier": 3, "language": "en"},
-    "Siasat Daily": {"url": "https://www.siasat.com/feeds/telangana", "tier": 3, "language": "en"},
+    "The Hindu Telangana": {"url": "https://www.thehindu.com/news/national/telangana/feeder/default.rss", "tier": 1, "language": "en"},
+    "The Hindu National": {"url": "https://www.thehindu.com/feeder/default.rss", "tier": 1, "language": "en"},
+    "Hindustan Times": {"url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml", "tier": 1, "language": "en"},
+    "India Today": {"url": "https://www.indiatoday.in/rss/home", "tier": 1, "language": "en"},
+    # Tier 2: Regional English
+    "Deccan Chronicle": {"url": "https://www.deccanchronicle.com/rss.xml", "tier": 2, "language": "en"},
+    "Hans India": {"url": "https://www.thehansindia.com/feed/", "tier": 2, "language": "en"},
+    "Siasat Daily": {"url": "https://www.siasat.com/feed/", "tier": 2, "language": "en"},
+    # Tier 3: National broad
+    "Times of India": {"url": "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms", "tier": 3, "language": "en"},
+    "TOI Hyderabad": {"url": "https://timesofindia.indiatimes.com/rssfeeds/7098551.cms", "tier": 3, "language": "en"},
 }
 
 
@@ -150,6 +149,15 @@ class FeedIngester:
         """
         if not articles:
             return []
+
+        # Deduplicate within the batch itself (multiple feeds can return same URL)
+        seen_urls: set[str] = set()
+        unique_articles = []
+        for a in articles:
+            if a["url"] not in seen_urls:
+                seen_urls.add(a["url"])
+                unique_articles.append(a)
+        articles = unique_articles
 
         # Create ORM objects
         orm_articles = []
