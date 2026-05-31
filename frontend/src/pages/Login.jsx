@@ -25,7 +25,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const daysLeft = Math.max(0, Math.round((new Date('2026-05-28') - new Date()) / 86400000));
+  const daysLeft = Math.max(0, Math.round((new Date('2027-05-28') - new Date()) / 86400000));
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -139,7 +139,7 @@ export default function Login() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 2 }}>
                   Serilingampally Assembly Constituency (AC-52)
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Telangana State · 28 May 2026</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Telangana State · 28 May 2027</div>
                 <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span className="live-dot" />
                   <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>NETA-CORE active</span>

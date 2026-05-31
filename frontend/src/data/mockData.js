@@ -13,7 +13,7 @@ export const constituency = {
   femaleVoters: 133812,
   otherVoters: 640,
   totalBooths: 225,
-  electionDate: '28 May 2026',
+  electionDate: '28 May 2027',
   daysToElection: 7,
   lastUpdated: '21 May 2026, 06:47 AM',
   areas: ['Kondapur', 'Madhapur', 'Hafeezpet', 'Miyapur', 'Lingampally', 'Chandanagar', 'JNTU', 'Nizampet', 'Gachibowli', 'Nallagandla'],

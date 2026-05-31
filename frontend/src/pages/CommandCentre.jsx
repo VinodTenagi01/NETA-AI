@@ -279,8 +279,8 @@ export default function CommandCentre() {
           />
           <StatCard
             label="Days to Election"
-            value={Math.max(0, Math.round((new Date('2026-05-28') - new Date()) / 86400000))}
-            sub="28 May 2026"
+            value={Math.max(0, Math.round((new Date('2027-05-28') - new Date()) / 86400000))}
+            sub="28 May 2027"
             accentColor="var(--saffron)"
           />
         </div>
