@@ -180,7 +180,7 @@ export default function Sidebar({ onOpenPalette, mobileOpen = false, onMobileClo
 
   const daysLeft = Math.max(
     0,
-    Math.round((new Date('2026-05-28') - new Date()) / (1000 * 60 * 60 * 24))
+    Math.round((new Date('2027-05-28') - new Date()) / (1000 * 60 * 60 * 24))
   );
 
   return (
@@ -263,7 +263,7 @@ export default function Sidebar({ onOpenPalette, mobileOpen = false, onMobileClo
             </span>
             <span className="days-value">{daysLeft}</span>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-              28 May 2026
+              28 May 2027
             </div>
           </div>
 
